@@ -1,0 +1,282 @@
+{
+  "auth": {
+    "login": {
+      "title": "Увійдіть до свого облікового запису",
+      "subtitle": "Або",
+      "createAccount": "створіть новий обліковий запис",
+      "username": "Ім'я користувача",
+      "password": "Пароль",
+      "rememberMe": "Запам'ятати мене",
+      "forgotPassword": "Забули пароль?",
+      "signIn": "Увійти",
+      "signingIn": "Вхід..."
+    },
+    "register": {
+      "title": "Створіть свій обліковий запис",
+      "subtitle": "Або",
+      "signInExisting": "увійдіть до існуючого облікового запису",
+      "username": "Ім'я користувача",
+      "firstName": "Ім'я",
+      "lastName": "Прізвище",
+      "password": "Пароль",
+      "confirmPassword": "Підтвердження паролю",
+      "role": "Роль",
+      "selectRole": "Виберіть роль",
+      "roleUser": "Користувач",
+      "roleAdmin": "Адміністратор",
+      "agreeToTerms": "Я погоджуюся з",
+      "termsAndConditions": "Умовами та положеннями",
+      "createAccount": "Створити обліковий запис",
+      "creatingAccount": "Створення облікового запису..."
+    },
+    "validation": {
+      "usernameRequired": "Ім'я користувача обов'язкове",
+      "usernameMinLength": "Ім'я користувача повинно містити принаймні 3 символи",
+      "firstNameMinLength": "Ім'я повинно містити принаймні 2 символи",
+      "lastNameMinLength": "Прізвище повинно містити принаймні 2 символи",
+      "passwordRequired": "Пароль обов'язковий",
+      "passwordMinLength": "Пароль повинен містити принаймні 4 символи",
+      "confirmPasswordRequired": "Будь ласка, підтвердіть свій пароль",
+      "passwordsDoNotMatch": "Паролі не співпадають",
+      "roleRequired": "Будь ласка, виберіть роль"
+    },
+    "errors": {
+      "loginFailed": "Помилка під час входу",
+      "registrationFailed": "Помилка під час реєстрації",
+      "logoutFailed": "Помилка під час виходу",
+      "tokenRefreshFailed": "Не вдалося оновити токен",
+      "unauthorized": "У вас немає дозволу на доступ до цього ресурсу",
+      "accessDenied": "Доступ заборонено",
+      "sessionExpired": "Ваша сесія закінчилася. Будь ласка, увійдіть знову.",
+      "invalidCredentials": "Неправильне ім'я користувача або пароль",
+      "networkError": "Помилка мережі. Будь ласка, перевірте ваше з'єднання.",
+      "serverError": "Помилка сервера. Спробуйте пізніше."
+    },
+    "success": {
+      "loginSuccess": "Успішно увійшли",
+      "registrationSuccess": "Обліковий запис створено успішно",
+      "logoutSuccess": "Успішно вийшли"
+    },
+    "pages": {
+      "unauthorized": {
+        "title": "Доступ заборонено",
+        "message": "У вас немає дозволу на доступ до цього ресурсу.",
+        "goBack": "Повернутися",
+        "goHome": "На головну"
+      },
+      "notFound": {
+        "title": "Сторінку не знайдено",
+        "message": "Сторінка, яку ви шукаєте, не існує.",
+        "goBack": "Повернутися",
+        "goHome": "На головну"
+      }
+    },
+    "menu": {
+      "signOut": "Вийти",
+      "profile": "Профіль",
+      "settings": "Налаштування",
+      "account": "Обліковий запис"
+    },
+    "roles": {
+      "admin": "Адміністратор",
+      "user": "Користувач"
+    }
+  },
+  "app": {
+    "name": "Wirelist Admin"
+  },
+  "signOut": "Вийти",
+  "wires": {
+    "from": "Від",
+    "to": "До",
+    "wireCode": "Код проводу",
+    "colorCode": "Код кольору",
+    "noteCode": "Код примітки",
+    "ioType": "Тип I/O",
+    "subcontroller": "Підконтролер",
+    "word": "Слово",
+    "bit": "Біт",
+    "remarks": "Примітки",
+    "power": "Живлення",
+    "origin": "Джерело",
+    "network": "Мережа",
+    "powerId": "ID живлення",
+    "actions": "Дії",
+    "search": "Пошук",
+    "filter": "Фільтр",
+    "sort": "Сортування",
+    "clear": "Очистити",
+    "apply": "Застосувати",
+    "cancel": "Скасувати",
+    "save": "Зберегти",
+    "saving": "Збереження...",
+    "delete": "Видалити",
+    "edit": "Редагувати",
+    "view": "Переглянути",
+    "close": "Закрити",
+    "confirm": "Підтвердити",
+    "loading": "Завантаження...",
+    "noResults": "Результатів не знайдено",
+    "error": "Помилка",
+    "success": "Успішно",
+    "warning": "Попередження",
+    "info": "Інформація",
+    "destination": "Призначення",
+    "address": "Адреса",
+    "other": "Інше",
+    "wire": "Провід",
+    "new": "Новий"
+  },
+  "table": {
+    "from": "Від",
+    "to": "До",
+    "wireCode": "Код проводу",
+    "colorCode": "Код кольору",
+    "noteCode": "Код примітки",
+    "ioType": "Тип I/O",
+    "subcontroller": "Підконтролер",
+    "word": "Слово",
+    "bit": "Біт",
+    "remarks": "Примітки",
+    "power": "Живлення",
+    "origin": "Джерело",
+    "network": "Мережа",
+    "powerId": "ID живлення",
+    "actions": "Дії",
+    "auditType": "Тип",
+    "auditDate": "Дата",
+    "author": "Автор",
+    "ped": "Пед",
+    "extended": "Розширена таблиця",
+    "filters": {
+      "unit": "юніт",
+      "panel": "панель",
+      "fromDestination": "Від призначення",
+      "toDestination": "До призначення",
+      "searchBy": "Пошук за {label}",
+      "apply": "Застосувати",
+      "applyWithCount": "Застосувати ({count})"
+    }
+  },
+  "pagination": {
+    "totalPages": "Всього сторінок"
+  },
+  "sidebar": {
+    "menu": "Меню",
+    "list": "Список",
+    "settings": "Налаштування",
+    "users": "Користувачі",
+    "roles": "Ролі",
+    "permissions": "Дозволи",
+    "changeList": "Список змін",
+    "reviewUpdates": "Перегляд оновлень"
+  },
+  "badges": {
+    "new": "нове",
+    "pro": "про"
+  },
+  "buttons": {
+    "create": "Створити +",
+    "upload": "Завантажити"
+  },
+  "search": {
+    "placeholder": "Пошук або введіть команду..."
+  },
+  "commands": {
+    "address": {
+      "label": "/address",
+      "description": "Пошук за адресою (підконтролер слово біт)",
+      "example": "Приклад: {example}"
+    }
+  },
+  "confirm": {
+    "deleteItem": "Ви впевнені, що хочете видалити цей елемент?",
+    "confirmMessage": "Підтвердити",
+    "cancelMessage": "Скасувати"
+  },
+  "upload": {
+    "dragAndDrop": "Натисніть або перетягніть файл у цю область для завантаження",
+    "warning": "Строго заборонено завантажувати конфіденційну інформацію. Наприклад, PIN-код вашої банківської картки або термін дії вашої кредитної картки.",
+    "success": "Файл успішно завантажено",
+    "error": "Помилка завантаження файлу",
+    "optionsTitle": "Параметри завантаження",
+    "options": {
+      "addAllInList": "Додати всі елементи до списку",
+      "deleteAllInList": "Видалити всі елементи зі списку"
+    }
+  },
+  "units": {
+    "select": "Обрати юніт",
+    "selectUnit": "Обрати юніт",
+    "allUnits": "Всі юніти",
+    "unit": "Юніт {unit}"
+  },
+  "updates": {
+    "history": "Історія оновлень:",
+    "by": "від",
+    "status": {
+      "pending": "ОЧІКУЄ",
+      "approved": "СХВАЛЕНО",
+      "declined": "ВІДХИЛЕНО",
+      "rejected": "ВИДАЛЕНО"
+    }
+  },
+  "reviewUpdates": {
+    "title": "Перегляд оновлень",
+    "description": "Перегляньте та керуйте всіма запитами на зміни. Фільтруйте за юнітом або статусом.",
+    "filterByUnit": "Фільтр за юнітом",
+    "filterByStatus": "Фільтр за статусом",
+    "refresh": "Оновити",
+    "batch": "Пакет:",
+    "changesBy": "{count} змін від",
+    "approveBatch": "Схвалити пакет",
+    "declineBatch": "Відхилити пакет",
+    "deleteBatch": "Видалити пакет",
+    "new": "Новий",
+    "noChangeRequests": "Запити на зміни не знайдено",
+    "adjustFilters": "Спробуйте змінити фільтри",
+    "addComment": "Додайте коментар (необов'язково)...",
+    "approve": "Схвалити",
+    "decline": "Відхилити",
+    "delete": "Видалити",
+    "cancel": "Скасувати",
+    "requestType": {
+      "create": "СТВОРЕННЯ",
+      "update": "ОНОВЛЕННЯ",
+      "delete": "ВИДАЛЕННЯ"
+    },
+    "modal": {
+      "approveRequest": "Схвалити запит на зміну",
+      "declineRequest": "Відхилити запит на зміну",
+      "approveBatch": "Схвалити пакет ({count} запитів)",
+      "declineBatch": "Відхилити пакет ({count} запитів)",
+      "approveDescription": "Ви збираєтесь схвалити цей запит на зміну. Ви можете додати коментар нижче.",
+      "declineDescription": "Ви збираєтесь відхилити цей запит на зміну. Ви можете додати коментар нижче.",
+      "approveBatchDescription": "Ви збираєтесь схвалити {count} запитів на зміни в цьому пакеті. Ви можете додати коментар нижче.",
+      "declineBatchDescription": "Ви збираєтесь відхилити {count} запитів на зміни в цьому пакеті. Ви можете додати коментар нижче."
+    },
+    "messages": {
+      "loadFailed": "Не вдалося завантажити запити на зміни",
+      "deleted": "Запит на зміну видалено",
+      "deleteFailed": "Не вдалося видалити запит на зміну",
+      "approved": "Запит на зміну схвалено",
+      "declined": "Запит на зміну відхилено",
+      "batchDeleted": "Видалено {count} запитів на зміни",
+      "batchDeleteFailed": "Не вдалося видалити пакет",
+      "batchApproved": "Схвалено {count} запитів на зміни",
+      "batchDeclined": "Відхилено {count} запитів на зміни",
+      "actionFailed": "Не вдалося {action} запит на зміну"
+    },
+    "table": {
+      "status": "Статус",
+      "author": "Автор",
+      "wireId": "ID проводу",
+      "from": "Від",
+      "to": "До",
+      "type": "Тип",
+      "changes": "Зміни",
+      "date": "Дата",
+      "actions": "Дії"
+    }
+  }
+}

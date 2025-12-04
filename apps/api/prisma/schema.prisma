@@ -1,0 +1,191 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  USER
+  VIEWER
+}
+
+model Wire {
+  id              BigInt    @id @default(autoincrement())
+  fromDestination String    @map("from_destination") @db.VarChar(100)
+  toDestination   String    @map("to_destination") @db.VarChar(100)
+  wireCodeId      Int?      @map("wire_code_id") @db.SmallInt
+  colorId         Int?      @map("color_id") @db.SmallInt
+  ioTypeId        String?   @map("io_type_id") @db.VarChar(255)
+  sub             Int?      @db.SmallInt
+  word            Int?      @db.SmallInt
+  bits            Int?      @db.SmallInt
+  power           String?   @db.VarChar(255)
+  origin          String?   @db.VarChar(255)
+  wireNumber      String?   @map("wire_number") @db.VarChar(255)
+  hwModelsId      Int?      @map("hw_models_id") @db.SmallInt
+  remarks         String?   @db.VarChar(255)
+  noteCode        String?   @map("note_code") @db.VarChar(255)
+  changeNumber    String?   @map("change_number") @db.VarChar(255)
+  changeDate      DateTime? @map("change_date") @db.Date
+  hwAddress       String?   @map("hw_address") @db.VarChar(255)
+  coord           String?   @db.VarChar(255)
+  decommissioned  String?   @db.VarChar(255)
+  ped             String?   @db.VarChar(255)
+  network         String?   @db.VarChar(255)
+  createdAt       DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt       DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+
+  @@map("wireslist")
+}
+
+model User {
+  id                     BigInt              @id @default(autoincrement())
+  username               String              @unique(map: "idx_username") @db.VarChar(50)
+  password               String              @db.VarChar(255)
+  role                   UserRole            @default(USER)
+  isActive               Boolean             @default(true) @map("is_active")
+  createdAt              DateTime            @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt              DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  firstName              String?             @map("first_name") @db.VarChar(100)
+  lastName               String?             @map("last_name") @db.VarChar(100)
+  wireslist_audit        wireslist_audit[]
+  changeRequestsAuthored WireChangeRequest[] @relation("ChangeRequestAuthor")
+  changeRequestsReviewed WireChangeRequest[] @relation("ChangeRequestReviewer")
+
+  @@index([isActive], map: "idx_users_active")
+  @@index([firstName], map: "idx_users_first_name")
+  @@index([firstName, lastName], map: "idx_users_full_name")
+  @@index([lastName], map: "idx_users_last_name")
+  @@index([role], map: "idx_users_role")
+  @@index([role, isActive], map: "idx_users_role_active")
+  @@map("users")
+}
+
+model flyway_schema_history {
+  installed_rank Int      @id(map: "flyway_schema_history_pk")
+  version        String?  @db.VarChar(50)
+  description    String   @db.VarChar(200)
+  type           String   @db.VarChar(20)
+  script         String   @db.VarChar(1000)
+  checksum       Int?
+  installed_by   String   @db.VarChar(100)
+  installed_on   DateTime @default(now()) @db.Timestamp(6)
+  execution_time Int
+  success        Boolean
+
+  @@index([success], map: "flyway_schema_history_s_idx")
+}
+
+enum ChangeRequestType {
+  CREATE
+  UPDATE
+  DELETE
+}
+
+enum ChangeRequestStatus {
+  PENDING
+  APPROVED
+  DECLINED
+  REJECTED
+}
+
+/// Change requests for wire modifications that require approval
+model WireChangeRequest {
+  id          BigInt            @id @default(autoincrement())
+  wireId      BigInt?           @map("wire_id") // NULL if creating new wire
+  requestType ChangeRequestType @map("request_type")
+
+  // Proposed wire data (snapshot of new values)
+  fromDestination String?   @map("from_destination") @db.VarChar(100)
+  toDestination   String?   @map("to_destination") @db.VarChar(100)
+  wireCodeId      Int?      @map("wire_code_id") @db.SmallInt
+  colorId         Int?      @map("color_id") @db.SmallInt
+  ioTypeId        String?   @map("io_type_id") @db.VarChar(255)
+  sub             Int?      @db.SmallInt
+  word            Int?      @db.SmallInt
+  bits            Int?      @db.SmallInt
+  power           String?   @db.VarChar(255)
+  origin          String?   @db.VarChar(255)
+  wireNumber      String?   @map("wire_number") @db.VarChar(255)
+  hwModelsId      Int?      @map("hw_models_id") @db.SmallInt
+  remarks         String?   @db.VarChar(255)
+  noteCode        String?   @map("note_code") @db.VarChar(255)
+  changeNumber    String?   @map("change_number") @db.VarChar(255)
+  changeDate      DateTime? @map("change_date") @db.Date
+  hwAddress       String?   @map("hw_address") @db.VarChar(255)
+  coord           String?   @db.VarChar(255)
+  decommissioned  String?   @db.VarChar(255)
+  ped             String?   @db.VarChar(255)
+  network         String?   @db.VarChar(255)
+
+  // JSON field to store changes with old and new values
+  // Format: { "fieldName": { "oldValue": "...", "newValue": "..." } }
+  changes Json? @db.Json
+
+  // Batch grouping - requests created together share the same batchId
+  batchId String? @map("batch_id") @db.VarChar(36) // UUID for grouping batch requests
+
+  // Request metadata
+  status   ChangeRequestStatus @default(PENDING)
+  authorId BigInt              @map("author_id")
+  author   User                @relation("ChangeRequestAuthor", fields: [authorId], references: [id])
+
+  // Review info
+  reviewerId    BigInt?   @map("reviewer_id")
+  reviewer      User?     @relation("ChangeRequestReviewer", fields: [reviewerId], references: [id])
+  reviewComment String?   @map("review_comment") @db.Text
+  reviewedAt    DateTime? @map("reviewed_at") @db.Timestamp(6)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+
+  @@index([authorId], map: "idx_change_request_author")
+  @@index([status], map: "idx_change_request_status")
+  @@index([wireId], map: "idx_change_request_wire")
+  @@index([createdAt], map: "idx_change_request_created")
+  @@index([batchId], map: "idx_change_request_batch")
+  @@map("wire_change_requests")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model wireslist_audit {
+  id               BigInt    @id @default(autoincrement())
+  wire_id          BigInt?
+  from_destination String    @db.VarChar(100)
+  to_destination   String    @db.VarChar(100)
+  wire_code_id     Int?      @db.SmallInt
+  color_id         Int?      @db.SmallInt
+  io_type_id       String?   @db.VarChar(255)
+  sub              Int?      @db.SmallInt
+  word             Int?      @db.SmallInt
+  bits             Int?      @db.SmallInt
+  power_id         Int?      @db.SmallInt
+  power            String?   @db.VarChar(255)
+  origin           String?   @db.VarChar(255)
+  wire_number      String?   @db.VarChar(255)
+  hw_models_id     Int?      @db.SmallInt
+  remarks          String?   @db.VarChar(255)
+  note_code        String?   @db.VarChar(255)
+  change_number    String?   @db.VarChar(255)
+  change_date      DateTime? @db.Date
+  hw_address       String?   @db.VarChar(255)
+  coord            String?   @db.VarChar(255)
+  decommissioned   String?   @db.VarChar(255)
+  ped              String?   @db.VarChar(255)
+  audit_type       String    @db.VarChar(50)
+  reason           String?   @db.VarChar(500)
+  audit_date       DateTime  @default(now()) @db.Timestamp(6)
+  network          String?   @db.VarChar(255)
+  created_at       DateTime? @default(now()) @db.Timestamp(6)
+  updated_at       DateTime? @default(now()) @db.Timestamp(6)
+  author_id        BigInt
+  users            User      @relation(fields: [author_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_wireaudit_author")
+
+  @@index([author_id], map: "idx_audit_author")
+  @@index([audit_date], map: "idx_audit_date")
+  @@index([audit_type], map: "idx_audit_type")
+}

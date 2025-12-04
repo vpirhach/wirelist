@@ -1,0 +1,282 @@
+{
+  "auth": {
+    "login": {
+      "title": "Sign in to your account",
+      "subtitle": "Or",
+      "createAccount": "create a new account",
+      "username": "Username",
+      "password": "Password",
+      "rememberMe": "Remember me",
+      "forgotPassword": "Forgot your password?",
+      "signIn": "Sign in",
+      "signingIn": "Signing in..."
+    },
+    "register": {
+      "title": "Create your account",
+      "subtitle": "Or",
+      "signInExisting": "sign in to your existing account",
+      "username": "Username",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "password": "Password",
+      "confirmPassword": "Confirm Password",
+      "role": "Role",
+      "selectRole": "Select role",
+      "roleUser": "User",
+      "roleAdmin": "Admin",
+      "agreeToTerms": "I agree to the",
+      "termsAndConditions": "Terms and Conditions",
+      "createAccount": "Create account",
+      "creatingAccount": "Creating account..."
+    },
+    "validation": {
+      "usernameRequired": "Username is required",
+      "usernameMinLength": "Username must be at least 3 characters long",
+      "firstNameMinLength": "First name must be at least 2 characters long",
+      "lastNameMinLength": "Last name must be at least 2 characters long",
+      "passwordRequired": "Password is required",
+      "passwordMinLength": "Password must be at least 4 characters long",
+      "confirmPasswordRequired": "Please confirm your password",
+      "passwordsDoNotMatch": "Passwords do not match",
+      "roleRequired": "Please select a role"
+    },
+    "errors": {
+      "loginFailed": "An error occurred during login",
+      "registrationFailed": "An error occurred during registration",
+      "logoutFailed": "An error occurred during logout",
+      "tokenRefreshFailed": "Failed to refresh token",
+      "unauthorized": "You are not authorized to access this resource",
+      "accessDenied": "Access denied",
+      "sessionExpired": "Your session has expired. Please log in again.",
+      "invalidCredentials": "Invalid username or password",
+      "networkError": "Network error. Please check your connection.",
+      "serverError": "Server error. Please try again later."
+    },
+    "success": {
+      "loginSuccess": "Successfully logged in",
+      "registrationSuccess": "Account created successfully",
+      "logoutSuccess": "Successfully logged out"
+    },
+    "pages": {
+      "unauthorized": {
+        "title": "Access Denied",
+        "message": "You don't have permission to access this resource.",
+        "goBack": "Go Back",
+        "goHome": "Go to Home"
+      },
+      "notFound": {
+        "title": "Page Not Found",
+        "message": "The page you're looking for doesn't exist.",
+        "goBack": "Go Back",
+        "goHome": "Go to Home"
+      }
+    },
+    "menu": {
+      "signOut": "Sign Out",
+      "profile": "Profile",
+      "settings": "Settings",
+      "account": "Account"
+    },
+    "roles": {
+      "admin": "Administrator",
+      "user": "User"
+    }
+  },
+  "app": {
+    "name": "Wirelist Admin"
+  },
+  "signOut": "Sign Out",
+  "wires": {
+    "from": "From",
+    "to": "To",
+    "wireCode": "Wire Code",
+    "colorCode": "Color Code",
+    "noteCode": "Note Code",
+    "ioType": "I/O Type",
+    "subcontroller": "Subcontroller",
+    "word": "Word",
+    "bit": "Bit",
+    "remarks": "Remarks",
+    "power": "Power",
+    "origin": "Origin",
+    "network": "Network",
+    "powerId": "Power ID",
+    "actions": "Actions",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "clear": "Clear",
+    "apply": "Apply",
+    "cancel": "Cancel",
+    "save": "Save",
+    "saving": "Saving...",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "close": "Close",
+    "confirm": "Confirm",
+    "loading": "Loading...",
+    "noResults": "No results found",
+    "error": "Error",
+    "success": "Success",
+    "warning": "Warning",
+    "info": "Information",
+    "destination": "Destination",
+    "address": "Address",
+    "other": "Other",
+    "wire": "Wire",
+    "new": "New"
+  },
+  "table": {
+    "from": "From",
+    "to": "To",
+    "wireCode": "Wire Code",
+    "colorCode": "Color Code",
+    "noteCode": "Note Code",
+    "ioType": "I/O Type",
+    "subcontroller": "Subcontroller",
+    "word": "Word",
+    "bit": "Bit",
+    "remarks": "Remarks",
+    "power": "Power",
+    "origin": "Origin",
+    "network": "Network",
+    "powerId": "Power ID",
+    "actions": "Actions",
+    "auditType": "Type",
+    "auditDate": "Date",
+    "author": "Author",
+    "ped": "Ped",
+    "extended": "Extended table",
+    "filters": {
+      "unit": "unit",
+      "panel": "panel",
+      "fromDestination": "From Destination",
+      "toDestination": "To Destination",
+      "searchBy": "Search by {{label}}",
+      "apply": "Apply",
+      "applyWithCount": "Apply ({{count}})"
+    }
+  },
+  "pagination": {
+    "totalPages": "Total pages"
+  },
+  "sidebar": {
+    "menu": "Menu",
+    "list": "List",
+    "settings": "Settings",
+    "users": "Users",
+    "roles": "Roles",
+    "permissions": "Permissions",
+    "changeList": "Change List",
+    "reviewUpdates": "Review Updates"
+  },
+  "badges": {
+    "new": "new",
+    "pro": "pro"
+  },
+  "buttons": {
+    "create": "Create +",
+    "upload": "Upload"
+  },
+  "search": {
+    "placeholder": "Search or type command..."
+  },
+  "commands": {
+    "address": {
+      "label": "/address",
+      "description": "Search by address (subcontroller word bit)",
+      "example": "Example: {example}"
+    }
+  },
+  "confirm": {
+    "deleteItem": "Are you sure you want to delete this item?",
+    "confirmMessage": "Confirm",
+    "cancelMessage": "Cancel"
+  },
+  "upload": {
+    "dragAndDrop": "Click or drag a file to this area to upload",
+    "warning": "Strictly prohibit from uploading sensitive information. For example, your bank card PIN or your credit card expiry date.",
+    "success": "File uploaded successfully",
+    "error": "Failed to upload file",
+    "optionsTitle": "Upload options",
+    "options": {
+      "addAllInList": "Add all items to the list",
+      "deleteAllInList": "Delete all items from the list"
+    }
+  },
+  "units": {
+    "select": "Select Unit",
+    "selectUnit": "Select unit",
+    "allUnits": "All Units",
+    "unit": "Unit {unit}"
+  },
+  "updates": {
+    "history": "Update History:",
+    "by": "by",
+    "status": {
+      "pending": "PENDING",
+      "approved": "APPROVED",
+      "declined": "DECLINED",
+      "rejected": "REJECTED"
+    }
+  },
+  "reviewUpdates": {
+    "title": "Review Updates",
+    "description": "View and manage all change requests. Filter by unit or status.",
+    "filterByUnit": "Filter by Unit",
+    "filterByStatus": "Filter by Status",
+    "refresh": "Refresh",
+    "batch": "Batch:",
+    "changesBy": "{count} changes by",
+    "approveBatch": "Approve Batch",
+    "declineBatch": "Decline Batch",
+    "deleteBatch": "Delete Batch",
+    "new": "New",
+    "noChangeRequests": "No change requests found",
+    "adjustFilters": "Try adjusting your filters",
+    "addComment": "Add a comment (optional)...",
+    "approve": "Approve",
+    "decline": "Decline",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "requestType": {
+      "create": "CREATE",
+      "update": "UPDATE",
+      "delete": "DELETE"
+    },
+    "modal": {
+      "approveRequest": "Approve Change Request",
+      "declineRequest": "Decline Change Request",
+      "approveBatch": "Approve Batch ({count} requests)",
+      "declineBatch": "Decline Batch ({count} requests)",
+      "approveDescription": "You are about to approve this change request. You can add an optional comment below.",
+      "declineDescription": "You are about to decline this change request. You can add an optional comment below.",
+      "approveBatchDescription": "You are about to approve {count} change requests in this batch. You can add an optional comment below.",
+      "declineBatchDescription": "You are about to decline {count} change requests in this batch. You can add an optional comment below."
+    },
+    "messages": {
+      "loadFailed": "Failed to load change requests",
+      "deleted": "Change request deleted",
+      "deleteFailed": "Failed to delete change request",
+      "approved": "Change request approved",
+      "declined": "Change request declined",
+      "batchDeleted": "Deleted {count} change requests",
+      "batchDeleteFailed": "Failed to delete batch",
+      "batchApproved": "Approved {count} change requests",
+      "batchDeclined": "Declined {count} change requests",
+      "actionFailed": "Failed to {action} change request"
+    },
+    "table": {
+      "status": "Status",
+      "author": "Author",
+      "wireId": "Wire ID",
+      "from": "From",
+      "to": "To",
+      "type": "Type",
+      "changes": "Changes",
+      "date": "Date",
+      "actions": "Actions"
+    }
+  }
+}

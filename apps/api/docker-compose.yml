@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  wirelist-api-node:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: wirelist-api-node
+    ports:
+      - '3002:3002'
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://postgres:mysecretpassword@postgres:5432/wirelist_db?schema=public
+      - PORT=3002
+      - JWT_SECRET=404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+      - JWT_EXPIRATION=86400000
+      - JWT_REFRESH_EXPIRATION=604800000
+      - CORS_ORIGINS=http://localhost:5173,http://localhost:4173
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    networks:
+      - wirelist-network
+
+  postgres:
+    image: postgres:17-alpine
+    container_name: wirelist-postgres-shared
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=mysecretpassword
+      - POSTGRES_DB=wirelist_db
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - wirelist-network
+
+networks:
+  wirelist-network:
+    external: true
+
+volumes:
+  postgres_data:

@@ -1,0 +1,55 @@
+СПИСОК СКРІНШОТІВ ДЛЯ GOOGLE DOCS
+
+Всі скріншоти знаходяться в папці: .playwright-mcp/
+
+ПОРЯДОК ВСТАВКИ ЗОБРАЖЕНЬ У GOOGLE DOCS:
+
+1. wirelist-main-page.png
+   Замінити: [СКРІНШОТ 1: ВСТАВИТИ ЗОБРАЖЕННЯ "wirelist-main-page.png" - Головна сторінка Wirelist]
+   Опис: Головна сторінка Wirelist з основним інтерфейсом
+
+2. wirelist-table-view.png
+   Замінити: [СКРІНШОТ 2: ВСТАВИТИ ЗОБРАЖЕННЯ "wirelist-table-view.png" - Таблиця дротів]
+   Опис: Основна таблиця з переліком всіх дротів
+
+3. wirelist-search-results.png
+   Замінити: [СКРІНШОТ 3: ВСТАВИТИ ЗОБРАЖЕННЯ "wirelist-search-results.png" - Результати пошуку]
+   Опис: Відфільтровані результати пошуку по запиту "01A1"
+
+4. wirelist-create-form.png
+   Замінити: [СКРІНШОТ 4: ВСТАВИТИ ЗОБРАЖЕННЯ "wirelist-create-form.png" - Форма створення дроту]
+   Опис: Форма для створення нового дроту з порожніми полями
+
+5. wirelist-filled-form.png
+   Замінити: [СКРІНШОТ 5: ВСТАВИТИ ЗОБРАЖЕННЯ "wirelist-filled-form.png" - Заповнена форма]
+   Опис: Та ж форма з заповненими демонстраційними даними
+
+6. wirelist-edit-form.png
+   Замінити: [СКРІНШОТ 6: ВСТАВИТИ ЗОБРАЖЕННЯ "wirelist-edit-form.png" - Форма редагування]
+   Опис: Форма редагування існуючого дроту з заповненими даними
+
+7. wirelist-changes-list.png
+   Замінити: [СКРІНШОТ 7: ВСТАВИТИ ЗОБРАЖЕННЯ "wirelist-changes-list.png" - Список змін]
+   Опис: Історія всіх операцій зі створення, редагування та видалення дротів
+
+ІНСТРУКЦІЯ ПО ВСТАВЦІ:
+1. Знайдіть у тексті позначку [СКРІНШОТ X: ...]
+2. Видаліть цю позначку
+3. Вставте відповідне зображення через меню "Вставка" → "Зображення"
+4. Налаштуйте розмір та обтікання тексту
+
+РОЗТАШУВАННЯ ФАЙЛІВ:
+/Users/valentynpirhach/dev/wirelist/wirelist-app/.playwright-mcp/
+├── wirelist-main-page.png
+├── wirelist-table-view.png
+├── wirelist-search-results.png
+├── wirelist-create-form.png
+├── wirelist-filled-form.png
+├── wirelist-edit-form.png
+└── wirelist-changes-list.png
+
+ГОТОВІ ФАЙЛИ ДЛЯ GOOGLE DOCS:
+✓ Інструкція_Wirelist_GoogleDocs.txt - текст без Markdown
+✓ Інструкція_завантаження_GoogleDocs.md - детальна інструкція
+✓ Список_скріншотів_для_GoogleDocs.txt - цей файл з переліком зображень
+

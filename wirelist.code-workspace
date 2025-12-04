@@ -1,0 +1,81 @@
+{
+  "folders": [
+    {
+      "name": "Root",
+      "path": "."
+    },
+    {
+      "name": "Web (Frontend)",
+      "path": "apps/web"
+    },
+    {
+      "name": "API (Backend)",
+      "path": "apps/api"
+    }
+  ],
+  "settings": {
+    "typescript.tsdk": "node_modules/typescript/lib",
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": "explicit"
+    },
+    "eslint.workingDirectories": [
+      { "directory": "apps/web", "changeProcessCWD": true },
+      { "directory": "apps/api", "changeProcessCWD": true }
+    ],
+    "files.exclude": {
+      "**/node_modules": true,
+      "**/dist": true,
+      "**/.turbo": true
+    },
+    "search.exclude": {
+      "**/node_modules": true,
+      "**/dist": true,
+      "**/.turbo": true
+    }
+  },
+  "extensions": {
+    "recommendations": [
+      "Vue.volar",
+      "dbaeumer.vscode-eslint",
+      "esbenp.prettier-vscode",
+      "bradlc.vscode-tailwindcss",
+      "Prisma.prisma"
+    ]
+  },
+  "tasks": {
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "Dev: All",
+        "type": "shell",
+        "command": "npm run dev",
+        "group": "build",
+        "problemMatcher": []
+      },
+      {
+        "label": "Dev: Web",
+        "type": "shell",
+        "command": "npm run dev --workspace=@wirelist/web",
+        "group": "build",
+        "problemMatcher": []
+      },
+      {
+        "label": "Dev: API",
+        "type": "shell",
+        "command": "npm run dev --workspace=@wirelist/api",
+        "group": "build",
+        "problemMatcher": []
+      },
+      {
+        "label": "Build: All",
+        "type": "shell",
+        "command": "npm run build",
+        "group": "build",
+        "problemMatcher": []
+      }
+    ]
+  }
+}
+
