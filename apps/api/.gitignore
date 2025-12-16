@@ -40,3 +40,6 @@ lerna-debug.log*
 
 # Prisma
 prisma/migrations/migration_lock.toml
+
+# Prisma 7 generated client
+prisma/generated/

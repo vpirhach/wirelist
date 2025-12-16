@@ -1,4 +1,5 @@
 {
+  "exclude": ["prisma.config.ts", "prisma/generated"],
   "compilerOptions": {
     "module": "commonjs",
     "declaration": true,
@@ -21,7 +22,8 @@
       "@/*": ["src/*"],
       "@config/*": ["src/config/*"],
       "@modules/*": ["src/modules/*"],
-      "@common/*": ["src/common/*"]
+      "@common/*": ["src/common/*"],
+      "@prisma/client": ["prisma/generated/prisma"]
     }
   }
 }
