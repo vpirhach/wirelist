@@ -160,6 +160,11 @@
     "author": "Автор",
     "ped": "Пед",
     "extended": "Розширена таблиця",
+    "page": "Сторінка",
+    "loadingMore": "Завантаження записів...",
+    "endOfList": "Кінець списку • {count} записів всього",
+    "recordsLoaded": "{loaded} з {total} записів",
+    "renderingRows": "Відображено {rendered} з {total} рядків",
     "filters": {
       "unit": "юніт",
       "panel": "панель",

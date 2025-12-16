@@ -1,6 +1,6 @@
 <template>
-  <div class="grid grid-cols-12 gap-4 md:gap-6">
-    <div class="col-span-12">
+  <div class="h-full flex flex-col">
+    <div class="shrink-0">
       <FilterTags />
 
       <NSpace justify="space-between" class="mb-4">
@@ -16,44 +16,53 @@
             {{ t('mainList.deleteSelected', selectedRows.length) }}
           </NButton>
         </NSpace>
-        <NSpace>
+        <NSpace align="center">
+          <!-- Records count badge -->
+          <span class="text-sm text-gray-500">
+            {{ t('table.recordsLoaded', { loaded: data.length, total: wiresStore.pageData.totalElements }) }}
+          </span>
           <NSwitch
             v-model:value="isExtendedTable"
             @update:value="onExtendedTableChanged"
             size="small"
           />
-          {{ t('table.extended') }}
-        </NSpace>
+        {{ t('table.extended') }}
       </NSpace>
+      </NSpace>
+    </div>
 
+    <!-- Table container - fills remaining space -->
+    <div class="flex-1 min-h-0">
       <WiresDataTable
         ref="tableRef"
         :data="data"
         :columns="columns"
+        :records-per-page="recordsPerPageDivider"
+        :is-loading-more="wiresStore.isLoadingMore"
+        :has-more="wiresStore.hasMoreData"
+        :row-height="36"
+        :max-visible-rows="maxVisibleRows"
+        container-height="100%"
         @cell-updated="onCellUpdated"
         @selection-changed="onSelectionChanged"
         @updates-changed="onUpdatesChanged"
+        @load-more="onLoadMore"
         :scroll-x="1000"
       />
-      <NPagination
-        class="mt-6 justify-end"
-        v-model:page="pagination.page"
-        v-model:page-size="pagination.pageSize"
-        :page-count="pagination.pageCount"
-        :show-size-picker="pagination.showSizePicker"
-        :page-sizes="pagination.pageSizes"
-        @update:page="onPageChanged"
-        @update:page-size="onUpdatePageSize"
-      />
+
+      <!-- Initial Loading State -->
+      <div v-if="wiresStore.isLoading && data.length === 0" class="flex justify-center py-12">
+        <NSpin size="large" />
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
-import { NSpace, NPagination, NSwitch, NButton, type DataTableColumns, useMessage } from 'naive-ui'
+import { computed, onMounted, ref } from 'vue'
+import { NSpace, NSwitch, NButton, NSpin, type DataTableColumns, useMessage } from 'naive-ui'
 import { type DataItem } from '@/api/wireslist'
-import { useWiresStore } from '@/stores/wires'
+import { useWiresStore, RECORDS_PER_PAGE_DIVIDER } from '@/stores/wires'
 import { useI18n } from 'vue-i18n'
 import FilterTags from '@/components/FilterTags.vue'
 import WiresDataTable from '@/components/WiresDataTable.vue'
@@ -69,6 +78,15 @@ const wiresStore = useWiresStore()
 const message = useMessage()
 const tableRef = ref<InstanceType<typeof WiresDataTable> | null>(null)
 const selectedRows = ref<DataItem[]>([])
+
+// Configurable: Number of records per visual page divider
+// This can be changed here or imported from store
+const recordsPerPageDivider = ref(RECORDS_PER_PAGE_DIVIDER)
+
+// Configurable: Maximum number of DOM elements to render for virtual scroll
+// Lower values = better performance, but faster scrolling may show blank areas
+const maxVisibleRows = ref(50)
+
 interface UpdateInfo {
   rowIndex: number
   updatedDate: string
@@ -126,10 +144,6 @@ const columns = computed<DataTableColumns<DataItem>>(() =>
       key: 'ioTypeId',
     },
     {
-      title: t('table.ioType'),
-      key: 'ioTypeId',
-    },
-    {
       title: t('table.subcontroller'),
       key: 'sub',
       width: isExtendedTable.value ? 50 : undefined,
@@ -171,34 +185,13 @@ const columns = computed<DataTableColumns<DataItem>>(() =>
   ].filter((column) => isExtendedTable.value || baseColumnNames.includes(column.key)),
 )
 
-const pagination = reactive({
-  page: 1,
-  pageSize: 1000,
-  pageCount: computed(() => wiresStore.pageData.totalPages),
-  showSizePicker: true,
-  pageSizes: [10, 30, 50, 100],
-  onChange: (page: number) => {
-    onPageChanged(page)
-  },
-  onUpdatePageSize: (pageSize: number) => {
-    onUpdatePageSize(pageSize)
-  },
-})
-
 onMounted(async () => {
   await wiresStore.fetchWires()
   await wiresStore.fetchUnitsAndPanels()
 })
 
-const onPageChanged = async (page: number) => {
-  wiresStore.updatePageNumber(page - 1)
-  wiresStore.fetchWires()
-}
-
-const onUpdatePageSize = (pageSize: number) => {
-  wiresStore.updatePageSize(pageSize)
-  wiresStore.updatePageNumber(0)
-  wiresStore.fetchWires()
+const onLoadMore = async () => {
+  await wiresStore.loadMoreWires()
 }
 
 const onExtendedTableChanged = (value: boolean) => {
@@ -213,8 +206,6 @@ const onCellUpdated = (
   updatedDataItem: DataItem,
 ) => {
   console.log('Cell updated:', { rowIndex, key, newValue, oldValue, updatedDataItem })
-  // TODO: Implement backend update logic here
-  // Example: wiresStore.updateWire(data.value[rowIndex])
 }
 
 const onSelectionChanged = (rows: DataItem[]) => {
@@ -223,13 +214,10 @@ const onSelectionChanged = (rows: DataItem[]) => {
 
 const onUpdatesChanged = (updates: Record<string | number, UpdateInfo[]>) => {
   updatedCells.value = updates
-  console.log('Updated cells:', updates)
 }
 
 const handleSaveChanges = async () => {
   if (Object.keys(updatedCells.value).length === 0) return
-
-  console.log('Saving changes:', updatedCells.value)
 
   try {
     // Build change records from updated cells
@@ -269,17 +257,6 @@ const handleSaveChanges = async () => {
     console.error('Error submitting change request:', error)
     message.error(t('mainList.submitFailed'))
   }
-}
-
-const loadServerUpdates = async () => {
-  // TODO: This will be replaced with actual API call
-  // Example: const serverUpdates = await wiresStore.fetchPendingUpdates()
-
-  // For now, the stub data is already in the table component
-  // In production, you would call:
-  // tableRef.value?.setServerUpdates(serverUpdates)
-
-  console.log('Server updates loaded (using stub data in component)')
 }
 
 const handleDeleteSelected = async () => {

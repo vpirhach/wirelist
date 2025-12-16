@@ -160,6 +160,11 @@
     "author": "Author",
     "ped": "Ped",
     "extended": "Extended table",
+    "page": "Page",
+    "loadingMore": "Loading more records...",
+    "endOfList": "End of list • {count} records total",
+    "recordsLoaded": "{loaded} of {total} records",
+    "renderingRows": "Rendering {rendered} of {total} rows",
     "filters": {
       "unit": "unit",
       "panel": "panel",

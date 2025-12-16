@@ -20,7 +20,12 @@
       <ChevronRightIcon class="w-5 h-5 text-gray-700" />
     </button>
 
-    <div ref="scrollContainer" class="w-full overflow-x-auto" @scroll="handleScroll">
+    <div
+      ref="scrollContainer"
+      class="w-full overflow-x-auto overflow-y-auto"
+      :style="{ maxHeight: maxHeight }"
+      @scroll="handleScroll"
+    >
       <slot />
     </div>
   </div>
@@ -32,11 +37,17 @@ import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/vue/24/solid'
 
 interface Props {
   scrollAmount?: number
+  maxHeight?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
   scrollAmount: 300,
+  maxHeight: 'calc(100vh - 240px)', // Default max height for vertical scrolling
 })
+
+const emit = defineEmits<{
+  scroll: [event: Event]
+}>()
 
 // Scroll state
 const scrollContainer = ref<HTMLElement | null>(null)
@@ -56,8 +67,10 @@ const updateScrollButtons = () => {
   showRightButton.value = scrollLeft + clientWidth < scrollWidth - 1
 }
 
-const handleScroll = () => {
+const handleScroll = (event: Event) => {
   updateScrollButtons()
+  // Emit scroll event for parent components to handle (e.g., infinite scroll)
+  emit('scroll', event)
 }
 
 const scrollLeft = () => {
@@ -85,5 +98,6 @@ defineExpose({
   scrollLeft,
   scrollRight,
   updateScrollButtons,
+  getScrollContainer: () => scrollContainer.value,
 })
 </script>
