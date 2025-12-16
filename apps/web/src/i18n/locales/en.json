@@ -125,7 +125,19 @@
     "address": "Address",
     "other": "Other",
     "wire": "Wire",
-    "new": "New"
+    "new": "New",
+    "createRequestSubmitted": "Create request submitted for review",
+    "updateRequestSubmitted": "Update request submitted for review",
+    "noChanges": "No changes detected",
+    "submitError": "Failed to submit change request"
+  },
+  "mainList": {
+    "saveUpdated": "Save {count} updated row | Save {count} updated rows",
+    "deleteSelected": "Delete {count} row | Delete {count} rows",
+    "changeRecordsSubmitted": "{count} change record submitted for review | {count} change records submitted for review",
+    "deleteRecordsSubmitted": "{count} delete record submitted for review | {count} delete records submitted for review",
+    "submitFailed": "Failed to submit change request",
+    "deleteFailed": "Failed to submit delete request"
   },
   "table": {
     "from": "From",
@@ -240,6 +252,8 @@
     "decline": "Decline",
     "delete": "Delete",
     "cancel": "Cancel",
+    "comment": "Comment",
+    "reviewComment": "Review comment",
     "requestType": {
       "create": "CREATE",
       "update": "UPDATE",

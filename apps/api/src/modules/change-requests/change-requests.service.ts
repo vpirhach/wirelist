@@ -1,11 +1,8 @@
 import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
-import { randomUUID } from 'crypto';
 import { PrismaService } from '../../common/prisma/prisma.service';
-import { User, ChangeRequestStatus, ChangeRequestType, Prisma } from '@prisma/client';
-import {
-  CreateChangeRequestDto,
-  BatchCreateChangeRequestDto,
-} from './dto/create-change-request.dto';
+import { User, ChangeRequestStatus, ChangeRecordType, Prisma } from '@prisma/client';
+import { CreateChangeRequestDto } from './dto/create-change-request.dto';
+import { CreateChangeRecordDto } from './dto/create-change-record.dto';
 import {
   ChangeRequestResponseDto,
   AuthorGroupedChangeRequestsDto,
@@ -20,93 +17,91 @@ export class ChangeRequestsService {
   constructor(private prisma: PrismaService) {}
 
   /**
-   * Create a single change request
-   * @param batchId - Optional batch ID for grouping requests created together
+   * Create a change request with multiple change records
    */
-  async create(
-    dto: CreateChangeRequestDto,
-    author: User,
-    batchId?: string,
-  ): Promise<ChangeRequestResponseDto> {
-    this.logger.log(`Creating change request by ${author.username}: ${dto.requestType}`);
-
-    // Validate: UPDATE and DELETE must have wireId
-    if ((dto.requestType === 'UPDATE' || dto.requestType === 'DELETE') && !dto.wireId) {
-      throw new BadRequestException(`wireId is required for ${dto.requestType} requests`);
+  async create(dto: CreateChangeRequestDto, author: User): Promise<ChangeRequestResponseDto> {
+    if (!dto.records || !Array.isArray(dto.records) || dto.records.length === 0) {
+      throw new BadRequestException('At least one change record is required');
     }
 
-    // Validate: CREATE must not have wireId
-    if (dto.requestType === 'CREATE' && dto.wireId) {
-      throw new BadRequestException('wireId should not be provided for CREATE requests');
+    this.logger.log(
+      `Creating change request with ${dto.records.length} records by ${author.username}`,
+    );
+
+    // Validate each record
+    for (const record of dto.records) {
+      this.validateChangeRecord(record);
     }
 
-    const changeRequest = await this.prisma.wireChangeRequest.create({
-      data: {
-        wireId: dto.wireId ? BigInt(dto.wireId) : null,
-        requestType: dto.requestType as ChangeRequestType,
-        fromDestination: dto.fromDestination,
-        toDestination: dto.toDestination,
-        wireCodeId: dto.wireCodeId,
-        colorId: dto.colorId,
-        ioTypeId: dto.ioTypeId,
-        sub: dto.sub,
-        word: dto.word,
-        bits: dto.bits,
-        power: dto.power,
-        origin: dto.origin,
-        wireNumber: dto.wireNumber,
-        hwModelsId: dto.hwModelsId,
-        remarks: dto.remarks,
-        noteCode: dto.noteCode,
-        changeNumber: dto.changeNumber,
-        changeDate: dto.changeDate ? new Date(dto.changeDate) : null,
-        hwAddress: dto.hwAddress,
-        coord: dto.coord,
-        decommissioned: dto.decommissioned,
-        ped: dto.ped,
-        network: dto.network,
-        changes: dto.changes ? (dto.changes as any) : Prisma.DbNull,
-        batchId: batchId || null,
-        authorId: author.id,
-        status: ChangeRequestStatus.PENDING,
-      },
-      include: { author: true },
+    // Create the change request with all records in a transaction
+    const changeRequest = await this.prisma.$transaction(async (tx) => {
+      // Create the change request
+      const request = await tx.changeRequest.create({
+        data: {
+          comment: dto.comment || null,
+          authorId: author.id,
+          status: ChangeRequestStatus.PENDING,
+        },
+      });
+
+      // Create all change records
+      for (const recordDto of dto.records) {
+        await tx.wireChangeRecord.create({
+          data: {
+            changeRequestId: request.id,
+            wireId: recordDto.wireId ? BigInt(recordDto.wireId) : null,
+            recordType: recordDto.recordType as ChangeRecordType,
+            fromDestination: recordDto.fromDestination,
+            toDestination: recordDto.toDestination,
+            wireCodeId: recordDto.wireCodeId,
+            colorId: recordDto.colorId,
+            ioTypeId: recordDto.ioTypeId,
+            sub: recordDto.sub,
+            word: recordDto.word,
+            bits: recordDto.bits,
+            power: recordDto.power,
+            origin: recordDto.origin,
+            wireNumber: recordDto.wireNumber,
+            hwModelsId: recordDto.hwModelsId,
+            remarks: recordDto.remarks,
+            noteCode: recordDto.noteCode,
+            changeNumber: recordDto.changeNumber,
+            changeDate: recordDto.changeDate ? new Date(recordDto.changeDate) : null,
+            hwAddress: recordDto.hwAddress,
+            coord: recordDto.coord,
+            decommissioned: recordDto.decommissioned,
+            ped: recordDto.ped,
+            network: recordDto.network,
+            changes: recordDto.changes ? (recordDto.changes as any) : Prisma.DbNull,
+          },
+        });
+      }
+
+      return request;
     });
 
-    return ChangeRequestResponseDto.fromEntity(changeRequest as any);
+    // Fetch the complete request with relations
+    const result = await this.prisma.changeRequest.findUnique({
+      where: { id: changeRequest.id },
+      include: { author: true, reviewer: true, records: true },
+    });
+
+    return ChangeRequestResponseDto.fromEntity(result!);
   }
 
   /**
-   * Create multiple change requests at once (batch update from table)
-   * All requests in the batch share the same batchId for grouping
+   * Validate a change record DTO
    */
-  async createBatch(
-    dto: BatchCreateChangeRequestDto,
-    author: User,
-  ): Promise<ChangeRequestResponseDto[]> {
-    if (!dto.requests || !Array.isArray(dto.requests)) {
-      throw new BadRequestException('requests array is required');
+  private validateChangeRecord(dto: CreateChangeRecordDto): void {
+    // Validate: UPDATE and DELETE must have wireId
+    if ((dto.recordType === 'UPDATE' || dto.recordType === 'DELETE') && !dto.wireId) {
+      throw new BadRequestException(`wireId is required for ${dto.recordType} records`);
     }
 
-    if (dto.requests.length === 0) {
-      return [];
+    // Validate: CREATE must not have wireId
+    if (dto.recordType === 'CREATE' && dto.wireId) {
+      throw new BadRequestException('wireId should not be provided for CREATE records');
     }
-
-    // Generate a unique batch ID for this batch of requests
-    const batchId = randomUUID();
-
-    this.logger.log(
-      `Creating ${dto.requests.length} change requests by ${author.username} with batchId: ${batchId}`,
-    );
-
-    const results: ChangeRequestResponseDto[] = [];
-
-    for (const request of dto.requests) {
-      const result = await this.create(request, author, batchId);
-      results.push(result);
-    }
-
-    return results;
   }
 
   /**
@@ -119,14 +114,14 @@ export class ChangeRequestsService {
     const skip = page * size;
 
     const [requests, total] = await Promise.all([
-      this.prisma.wireChangeRequest.findMany({
+      this.prisma.changeRequest.findMany({
         where: { status: ChangeRequestStatus.PENDING },
-        include: { author: true, reviewer: true },
+        include: { author: true, reviewer: true, records: true },
         orderBy: { createdAt: 'desc' },
         skip,
         take: size,
       }),
-      this.prisma.wireChangeRequest.count({
+      this.prisma.changeRequest.count({
         where: { status: ChangeRequestStatus.PENDING },
       }),
     ]);
@@ -154,24 +149,28 @@ export class ChangeRequestsService {
       conditions.push({ status });
     }
 
-    // Unit filter: fromDestination starts with unit code
+    // Unit filter: filter requests that have records with fromDestination starting with unit code
     if (unit) {
       conditions.push({
-        fromDestination: { startsWith: unit, mode: 'insensitive' },
+        records: {
+          some: {
+            fromDestination: { startsWith: unit, mode: 'insensitive' },
+          },
+        },
       });
     }
 
     const where = conditions.length > 0 ? { AND: conditions } : {};
 
     const [requests, total] = await Promise.all([
-      this.prisma.wireChangeRequest.findMany({
+      this.prisma.changeRequest.findMany({
         where,
-        include: { author: true, reviewer: true },
+        include: { author: true, reviewer: true, records: true },
         orderBy: { createdAt: 'desc' },
         skip,
         take: size,
       }),
-      this.prisma.wireChangeRequest.count({ where }),
+      this.prisma.changeRequest.count({ where }),
     ]);
 
     const data = requests.map((r) => ChangeRequestResponseDto.fromEntity(r));
@@ -200,17 +199,17 @@ export class ChangeRequestsService {
   ): Promise<AuthorGroupedChangeRequestsDto[]> {
     const where = statuses && statuses.length > 0 ? { status: { in: statuses } } : {};
 
-    const requests = await this.prisma.wireChangeRequest.findMany({
+    const requests = await this.prisma.changeRequest.findMany({
       where,
-      include: { author: true, reviewer: true },
+      include: { author: true, reviewer: true, records: true },
       orderBy: [{ authorId: 'asc' }, { createdAt: 'desc' }],
     });
 
-    // Type for requests with author included
-    type RequestWithAuthor = (typeof requests)[number];
+    // Type for requests with relations included
+    type RequestWithRelations = (typeof requests)[number];
 
     // Group by author
-    const groupedMap = new Map<string, RequestWithAuthor[]>();
+    const groupedMap = new Map<string, RequestWithRelations[]>();
 
     for (const request of requests) {
       const authorKey = request.authorId.toString();
@@ -240,11 +239,15 @@ export class ChangeRequestsService {
         return r.createdAt > latest ? r.createdAt : latest;
       }, authorRequests[0].createdAt);
 
+      // Count total records across all requests
+      const totalRecords = authorRequests.reduce((sum, r) => sum + r.records.length, 0);
+
       result.push({
         author: authorDto,
         updatedDate: latestDate.toISOString(),
         requests: authorRequests.map((r) => ChangeRequestResponseDto.fromEntity(r)),
         count: authorRequests.length,
+        totalRecords,
       });
     }
 
@@ -258,9 +261,9 @@ export class ChangeRequestsService {
    * Get a single change request by ID
    */
   async findOne(id: bigint): Promise<ChangeRequestResponseDto> {
-    const request = await this.prisma.wireChangeRequest.findUnique({
+    const request = await this.prisma.changeRequest.findUnique({
       where: { id },
-      include: { author: true, reviewer: true },
+      include: { author: true, reviewer: true, records: true },
     });
 
     if (!request) {
@@ -271,14 +274,14 @@ export class ChangeRequestsService {
   }
 
   /**
-   * Approve a change request - apply changes to wireslist
+   * Approve a change request - apply all records to wireslist
    */
   async approve(id: bigint, reviewer: User, comment?: string): Promise<ChangeRequestResponseDto> {
     this.logger.log(`Approving change request ${id} by ${reviewer.username}`);
 
-    const request = await this.prisma.wireChangeRequest.findUnique({
+    const request = await this.prisma.changeRequest.findUnique({
       where: { id },
-      include: { author: true },
+      include: { author: true, records: true },
     });
 
     if (!request) {
@@ -289,75 +292,77 @@ export class ChangeRequestsService {
       throw new BadRequestException(`Change request is not pending (status: ${request.status})`);
     }
 
-    // Apply the change based on request type
+    // Apply all change records in a transaction
     await this.prisma.$transaction(async (tx) => {
-      switch (request.requestType) {
-        case ChangeRequestType.CREATE:
-          await tx.wire.create({
-            data: {
-              fromDestination: request.fromDestination!,
-              toDestination: request.toDestination!,
-              wireCodeId: request.wireCodeId,
-              colorId: request.colorId,
-              ioTypeId: request.ioTypeId,
-              sub: request.sub,
-              word: request.word,
-              bits: request.bits,
-              power: request.power,
-              origin: request.origin,
-              wireNumber: request.wireNumber,
-              hwModelsId: request.hwModelsId,
-              remarks: request.remarks,
-              noteCode: request.noteCode,
-              changeNumber: request.changeNumber,
-              changeDate: request.changeDate,
-              hwAddress: request.hwAddress,
-              coord: request.coord,
-              decommissioned: request.decommissioned,
-              ped: request.ped,
-              network: request.network,
-            },
-          });
-          break;
+      for (const record of request.records) {
+        switch (record.recordType) {
+          case ChangeRecordType.CREATE:
+            await tx.wire.create({
+              data: {
+                fromDestination: record.fromDestination!,
+                toDestination: record.toDestination!,
+                wireCodeId: record.wireCodeId,
+                colorId: record.colorId,
+                ioTypeId: record.ioTypeId,
+                sub: record.sub,
+                word: record.word,
+                bits: record.bits,
+                power: record.power,
+                origin: record.origin,
+                wireNumber: record.wireNumber,
+                hwModelsId: record.hwModelsId,
+                remarks: record.remarks,
+                noteCode: record.noteCode,
+                changeNumber: record.changeNumber,
+                changeDate: record.changeDate,
+                hwAddress: record.hwAddress,
+                coord: record.coord,
+                decommissioned: record.decommissioned,
+                ped: record.ped,
+                network: record.network,
+              },
+            });
+            break;
 
-        case ChangeRequestType.UPDATE:
-          await tx.wire.update({
-            where: { id: request.wireId! },
-            data: {
-              fromDestination: request.fromDestination ?? undefined,
-              toDestination: request.toDestination ?? undefined,
-              wireCodeId: request.wireCodeId,
-              colorId: request.colorId,
-              ioTypeId: request.ioTypeId,
-              sub: request.sub,
-              word: request.word,
-              bits: request.bits,
-              power: request.power,
-              origin: request.origin,
-              wireNumber: request.wireNumber,
-              hwModelsId: request.hwModelsId,
-              remarks: request.remarks,
-              noteCode: request.noteCode,
-              changeNumber: request.changeNumber,
-              changeDate: request.changeDate,
-              hwAddress: request.hwAddress,
-              coord: request.coord,
-              decommissioned: request.decommissioned,
-              ped: request.ped,
-              network: request.network,
-            },
-          });
-          break;
+          case ChangeRecordType.UPDATE:
+            await tx.wire.update({
+              where: { id: record.wireId! },
+              data: {
+                fromDestination: record.fromDestination ?? undefined,
+                toDestination: record.toDestination ?? undefined,
+                wireCodeId: record.wireCodeId,
+                colorId: record.colorId,
+                ioTypeId: record.ioTypeId,
+                sub: record.sub,
+                word: record.word,
+                bits: record.bits,
+                power: record.power,
+                origin: record.origin,
+                wireNumber: record.wireNumber,
+                hwModelsId: record.hwModelsId,
+                remarks: record.remarks,
+                noteCode: record.noteCode,
+                changeNumber: record.changeNumber,
+                changeDate: record.changeDate,
+                hwAddress: record.hwAddress,
+                coord: record.coord,
+                decommissioned: record.decommissioned,
+                ped: record.ped,
+                network: record.network,
+              },
+            });
+            break;
 
-        case ChangeRequestType.DELETE:
-          await tx.wire.delete({
-            where: { id: request.wireId! },
-          });
-          break;
+          case ChangeRecordType.DELETE:
+            await tx.wire.delete({
+              where: { id: record.wireId! },
+            });
+            break;
+        }
       }
 
       // Update the change request status
-      await tx.wireChangeRequest.update({
+      await tx.changeRequest.update({
         where: { id },
         data: {
           status: ChangeRequestStatus.APPROVED,
@@ -369,9 +374,9 @@ export class ChangeRequestsService {
     });
 
     // Return the updated request
-    const updated = await this.prisma.wireChangeRequest.findUnique({
+    const updated = await this.prisma.changeRequest.findUnique({
       where: { id },
-      include: { author: true, reviewer: true },
+      include: { author: true, reviewer: true, records: true },
     });
 
     return ChangeRequestResponseDto.fromEntity(updated!);
@@ -383,7 +388,7 @@ export class ChangeRequestsService {
   async decline(id: bigint, reviewer: User, comment?: string): Promise<ChangeRequestResponseDto> {
     this.logger.log(`Declining change request ${id} by ${reviewer.username}`);
 
-    const request = await this.prisma.wireChangeRequest.findUnique({
+    const request = await this.prisma.changeRequest.findUnique({
       where: { id },
     });
 
@@ -395,7 +400,7 @@ export class ChangeRequestsService {
       throw new BadRequestException(`Change request is not pending (status: ${request.status})`);
     }
 
-    const updated = await this.prisma.wireChangeRequest.update({
+    const updated = await this.prisma.changeRequest.update({
       where: { id },
       data: {
         status: ChangeRequestStatus.DECLINED,
@@ -403,7 +408,7 @@ export class ChangeRequestsService {
         reviewComment: comment || null,
         reviewedAt: new Date(),
       },
-      include: { author: true, reviewer: true },
+      include: { author: true, reviewer: true, records: true },
     });
 
     return ChangeRequestResponseDto.fromEntity(updated);
@@ -415,7 +420,7 @@ export class ChangeRequestsService {
   async reject(id: bigint, reviewer: User): Promise<void> {
     this.logger.log(`Rejecting (deleting) change request ${id} by ${reviewer.username}`);
 
-    const request = await this.prisma.wireChangeRequest.findUnique({
+    const request = await this.prisma.changeRequest.findUnique({
       where: { id },
     });
 
@@ -423,7 +428,8 @@ export class ChangeRequestsService {
       throw new NotFoundException(`Change request with ID ${id} not found`);
     }
 
-    await this.prisma.wireChangeRequest.delete({
+    // Records will be deleted automatically due to onDelete: Cascade
+    await this.prisma.changeRequest.delete({
       where: { id },
     });
   }
@@ -434,7 +440,7 @@ export class ChangeRequestsService {
   async approveByAuthor(authorId: bigint, reviewer: User, comment?: string): Promise<number> {
     this.logger.log(`Approving all requests from author ${authorId} by ${reviewer.username}`);
 
-    const requests = await this.prisma.wireChangeRequest.findMany({
+    const requests = await this.prisma.changeRequest.findMany({
       where: {
         authorId,
         status: ChangeRequestStatus.PENDING,
@@ -461,7 +467,7 @@ export class ChangeRequestsService {
   async declineByAuthor(authorId: bigint, reviewer: User, comment?: string): Promise<number> {
     this.logger.log(`Declining all requests from author ${authorId} by ${reviewer.username}`);
 
-    const result = await this.prisma.wireChangeRequest.updateMany({
+    const result = await this.prisma.changeRequest.updateMany({
       where: {
         authorId,
         status: ChangeRequestStatus.PENDING,
@@ -483,7 +489,7 @@ export class ChangeRequestsService {
   async rejectByAuthor(authorId: bigint, reviewer: User): Promise<number> {
     this.logger.log(`Rejecting all requests from author ${authorId} by ${reviewer.username}`);
 
-    const result = await this.prisma.wireChangeRequest.deleteMany({
+    const result = await this.prisma.changeRequest.deleteMany({
       where: {
         authorId,
         status: ChangeRequestStatus.PENDING,

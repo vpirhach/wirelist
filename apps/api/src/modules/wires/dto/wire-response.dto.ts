@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Wire, WireChangeRequest, User, ChangeRequestStatus } from '@prisma/client';
-import { FieldChange } from '../../change-requests/dto/create-change-request.dto';
+import { Wire, WireChangeRecord, ChangeRequest, User, ChangeRequestStatus } from '@prisma/client';
+import { FieldChange } from '../../change-requests/dto/create-change-record.dto';
 
 /**
  * Represents a change request update for a wire (pending or approved)
@@ -109,7 +109,7 @@ export class WireResponseDto {
 
   static fromEntity(
     wire: Wire,
-    changeRequests?: (WireChangeRequest & { author?: User })[],
+    changeRecords?: (WireChangeRecord & { changeRequest: ChangeRequest & { author?: User } })[],
   ): WireResponseDto {
     return {
       id: wire.id.toString(),
@@ -136,16 +136,16 @@ export class WireResponseDto {
       network: wire.network ?? undefined,
       createdAt: wire.createdAt || new Date(),
       updatedAt: wire.updatedAt || new Date(),
-      updates: changeRequests?.map((cr) => ({
+      updates: changeRecords?.map((cr) => ({
         id: cr.id.toString(),
         updatedDate: cr.createdAt.toISOString(),
-        status: cr.status,
+        status: cr.changeRequest.status,
         changes: (cr.changes as unknown as Record<string, FieldChange>) || {},
-        authorId: cr.authorId?.toString(),
-        authorName: cr.author
-          ? `${cr.author.firstName || ''} ${cr.author.lastName || ''}`.trim()
+        authorId: cr.changeRequest.authorId?.toString(),
+        authorName: cr.changeRequest.author
+          ? `${cr.changeRequest.author.firstName || ''} ${cr.changeRequest.author.lastName || ''}`.trim()
           : undefined,
-        reviewComment: cr.reviewComment ?? undefined,
+        reviewComment: cr.changeRequest.reviewComment ?? undefined,
       })),
     };
   }

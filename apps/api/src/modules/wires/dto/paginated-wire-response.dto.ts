@@ -13,13 +13,13 @@ export class PaginatedWireResponseDto extends PageResponseDto<WireResponseDto> {
 
   /**
    * Create from service response with automatic mapping
-   * Includes pending change requests for each wire
+   * Includes pending change records for each wire
    */
   static fromPaginatedResponse(
     result: PaginatedResponseDto<WireWithPendingUpdates>,
   ): PaginatedWireResponseDto {
     return PageResponseDto.from(result, (wire) =>
-      WireResponseDto.fromEntity(wire, wire.pendingChangeRequests),
+      WireResponseDto.fromEntity(wire, wire.pendingChangeRecords),
     ) as PaginatedWireResponseDto;
   }
 }

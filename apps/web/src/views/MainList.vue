@@ -10,11 +10,10 @@
             type="primary"
             @click="handleSaveChanges"
           >
-            Save {{ Object.keys(updatedCells).length }} updated
-            {{ Object.keys(updatedCells).length === 1 ? 'row' : 'rows' }}
+            {{ t('mainList.saveUpdated', Object.keys(updatedCells).length) }}
           </NButton>
           <NButton v-if="selectedRows.length > 0" type="error" @click="handleDeleteSelected">
-            Delete {{ selectedRows.length }} {{ selectedRows.length === 1 ? 'row' : 'rows' }}
+            {{ t('mainList.deleteSelected', selectedRows.length) }}
           </NButton>
         </NSpace>
         <NSpace>
@@ -59,9 +58,9 @@ import { useI18n } from 'vue-i18n'
 import FilterTags from '@/components/FilterTags.vue'
 import WiresDataTable from '@/components/WiresDataTable.vue'
 import {
-  createBatchChangeRequests,
-  wireToChangeRequest,
-  type CreateChangeRequestDto,
+  createChangeRequest,
+  wireToChangeRecord,
+  type CreateChangeRecordDto,
   type FieldChange,
 } from '@/api/changeRequests'
 
@@ -233,8 +232,8 @@ const handleSaveChanges = async () => {
   console.log('Saving changes:', updatedCells.value)
 
   try {
-    // Build change requests from updated cells
-    const changeRequests: CreateChangeRequestDto[] = []
+    // Build change records from updated cells
+    const changeRecords: CreateChangeRecordDto[] = []
 
     for (const [wireId, updates] of Object.entries(updatedCells.value)) {
       // Get the latest update for this wire
@@ -252,25 +251,23 @@ const handleSaveChanges = async () => {
           }
         }
 
-        // Create an UPDATE change request with the current wire data and changes
-        changeRequests.push(wireToChangeRequest(wire, 'UPDATE', changes))
+        // Create an UPDATE change record with the current wire data and changes
+        changeRecords.push(wireToChangeRecord(wire, 'UPDATE', changes))
       }
     }
 
-    if (changeRequests.length > 0) {
-      // Submit all change requests as a batch
-      await createBatchChangeRequests({ requests: changeRequests })
+    if (changeRecords.length > 0) {
+      // Submit all change records as a single change request
+      await createChangeRequest({ records: changeRecords })
 
-      message.success(
-        `${changeRequests.length} change ${changeRequests.length === 1 ? 'request' : 'requests'} submitted for review`,
-      )
+      message.success(t('mainList.changeRecordsSubmitted', changeRecords.length))
 
       // Clear updates after successful submission
       tableRef.value?.clearUpdates()
     }
   } catch (error) {
-    console.error('Error submitting change requests:', error)
-    message.error('Failed to submit change requests')
+    console.error('Error submitting change request:', error)
+    message.error(t('mainList.submitFailed'))
   }
 }
 
@@ -289,25 +286,23 @@ const handleDeleteSelected = async () => {
   if (selectedRows.value.length === 0) return
 
   try {
-    // Build DELETE change requests for selected rows
-    const changeRequests: CreateChangeRequestDto[] = selectedRows.value.map((wire) =>
-      wireToChangeRequest(wire, 'DELETE'),
+    // Build DELETE change records for selected rows
+    const changeRecords: CreateChangeRecordDto[] = selectedRows.value.map((wire) =>
+      wireToChangeRecord(wire, 'DELETE'),
     )
 
-    if (changeRequests.length > 0) {
-      // Submit all DELETE change requests as a batch
-      await createBatchChangeRequests({ requests: changeRequests })
+    if (changeRecords.length > 0) {
+      // Submit all DELETE change records as a single change request
+      await createChangeRequest({ records: changeRecords })
 
-      message.success(
-        `${changeRequests.length} delete ${changeRequests.length === 1 ? 'request' : 'requests'} submitted for review`,
-      )
+      message.success(t('mainList.deleteRecordsSubmitted', changeRecords.length))
 
       // Clear selection after successful submission
       tableRef.value?.clearSelection()
     }
   } catch (error) {
-    console.error('Error submitting delete requests:', error)
-    message.error('Failed to submit delete requests')
+    console.error('Error submitting delete request:', error)
+    message.error(t('mainList.deleteFailed'))
   }
 }
 

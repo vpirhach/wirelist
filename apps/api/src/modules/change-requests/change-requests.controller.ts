@@ -24,20 +24,16 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { User, ChangeRequestStatus } from '@prisma/client';
 import { ChangeRequestsService } from './change-requests.service';
-import {
-  CreateChangeRequestDto,
-  BatchCreateChangeRequestDto,
-} from './dto/create-change-request.dto';
+import { CreateChangeRequestDto } from './dto/create-change-request.dto';
 import {
   ApproveChangeRequestDto,
   DeclineChangeRequestDto,
-  BatchReviewDto,
 } from './dto/review-change-request.dto';
 import {
   ChangeRequestResponseDto,
   AuthorGroupedChangeRequestsDto,
 } from './dto/change-request-response.dto';
-import { PaginatedResponseDto, PageResponseDto } from '../../common/dto/pagination.dto';
+import { PageResponseDto } from '../../common/dto/pagination.dto';
 
 @ApiTags('Change Requests')
 @ApiBearerAuth()
@@ -47,23 +43,13 @@ export class ChangeRequestsController {
   constructor(private readonly changeRequestsService: ChangeRequestsService) {}
 
   @Post()
-  @ApiOperation({ summary: 'Create a change request' })
+  @ApiOperation({ summary: 'Create a change request with multiple change records' })
   @ApiResponse({ status: 201, type: ChangeRequestResponseDto })
   async create(
     @Body() dto: CreateChangeRequestDto,
     @CurrentUser() user: User,
   ): Promise<ChangeRequestResponseDto> {
     return this.changeRequestsService.create(dto, user);
-  }
-
-  @Post('batch')
-  @ApiOperation({ summary: 'Create multiple change requests at once' })
-  @ApiResponse({ status: 201, type: [ChangeRequestResponseDto] })
-  async createBatch(
-    @Body() dto: BatchCreateChangeRequestDto,
-    @CurrentUser() user: User,
-  ): Promise<ChangeRequestResponseDto[]> {
-    return this.changeRequestsService.createBatch(dto, user);
   }
 
   @Get()

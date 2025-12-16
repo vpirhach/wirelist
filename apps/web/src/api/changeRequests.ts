@@ -7,7 +7,7 @@ import type { DataItem } from './wireslist'
  * Uses Node.js backend (v2)
  */
 
-export type ChangeRequestType = 'CREATE' | 'UPDATE' | 'DELETE'
+export type ChangeRecordType = 'CREATE' | 'UPDATE' | 'DELETE'
 export type ChangeRequestStatus = 'PENDING' | 'APPROVED' | 'DECLINED' | 'REJECTED'
 
 /**
@@ -24,11 +24,20 @@ export interface Author {
   fullName: string
 }
 
-export interface ChangeRequest {
+export interface Reviewer {
+  id: string
+  username: string
+  fullName: string
+}
+
+/**
+ * Individual wire change record within a change request
+ */
+export interface ChangeRecord {
   id: string
   wireId: string | null
-  requestType: ChangeRequestType
-  status: ChangeRequestStatus
+  recordType: ChangeRecordType
+  changeRequestId: string
   fromDestination: string | null
   toDestination: string | null
   wireCodeId: number | null
@@ -51,12 +60,25 @@ export interface ChangeRequest {
   ped: string | null
   network: string | null
   changes: Record<string, FieldChange> | null
-  batchId: string | null // For grouping requests created in the same batch
+  createdAt: string
+  updatedAt: string
+}
+
+/**
+ * Change request containing multiple wire change records
+ */
+export interface ChangeRequest {
+  id: string
+  status: ChangeRequestStatus
+  comment: string | null
   author: Author
+  reviewer: Reviewer | null
   reviewComment: string | null
   reviewedAt: string | null
   createdAt: string
   updatedAt: string
+  records: ChangeRecord[]
+  recordCount: number
 }
 
 export interface AuthorGroupedChangeRequests {
@@ -64,11 +86,15 @@ export interface AuthorGroupedChangeRequests {
   updatedDate: string
   requests: ChangeRequest[]
   count: number
+  totalRecords: number
 }
 
-export interface CreateChangeRequestDto {
+/**
+ * DTO for creating a single change record
+ */
+export interface CreateChangeRecordDto {
   wireId?: number | string
-  requestType: ChangeRequestType
+  recordType: ChangeRecordType
   fromDestination?: string
   toDestination?: string
   wireCodeId?: number
@@ -93,8 +119,12 @@ export interface CreateChangeRequestDto {
   changes?: Record<string, FieldChange>
 }
 
-export interface BatchCreateChangeRequestDto {
-  requests: CreateChangeRequestDto[]
+/**
+ * DTO for creating a change request with records
+ */
+export interface CreateChangeRequestDto {
+  comment?: string
+  records: CreateChangeRecordDto[]
 }
 
 export interface ReviewDto {
@@ -113,21 +143,12 @@ export interface PaginatedResponse<T> {
 }
 
 /**
- * Create a single change request
+ * Create a change request with multiple records
  */
 export const createChangeRequest = (
   dto: CreateChangeRequestDto,
 ): Promise<AxiosResponse<ChangeRequest>> => {
   return axiosInstance.post<ChangeRequest>('/change-requests', dto)
-}
-
-/**
- * Create multiple change requests at once (batch)
- */
-export const createBatchChangeRequests = (
-  dto: BatchCreateChangeRequestDto,
-): Promise<AxiosResponse<ChangeRequest[]>> => {
-  return axiosInstance.post<ChangeRequest[]>('/change-requests/batch', dto)
 }
 
 /**
@@ -253,19 +274,19 @@ export const rejectByAuthor = (
 }
 
 /**
- * Helper: Convert a DataItem wire to a change request DTO for UPDATE
+ * Helper: Convert a DataItem wire to a change record DTO for UPDATE
  * @param wire - The current (new) wire data
- * @param type - The type of change request (CREATE, UPDATE, DELETE)
+ * @param type - The type of change record (CREATE, UPDATE, DELETE)
  * @param changes - Optional changes object with old and new values
  */
-export const wireToChangeRequest = (
+export const wireToChangeRecord = (
   wire: DataItem,
-  type: ChangeRequestType = 'UPDATE',
+  type: ChangeRecordType = 'UPDATE',
   changes?: Record<string, FieldChange>,
-): CreateChangeRequestDto => {
+): CreateChangeRecordDto => {
   return {
     wireId: wire.id ?? undefined,
-    requestType: type,
+    recordType: type,
     fromDestination: wire.fromDestination,
     toDestination: wire.toDestination,
     wireCodeId: wire.wireCodeId,
@@ -288,5 +309,24 @@ export const wireToChangeRequest = (
     ped: wire.ped,
     network: wire.network,
     changes: changes,
+  }
+}
+
+/**
+ * Helper: Create a change request from multiple wires
+ * @param wires - Array of wire data with changes
+ * @param comment - Optional comment for the change request
+ */
+export const createChangeRequestFromWires = (
+  wires: Array<{
+    wire: DataItem
+    type: ChangeRecordType
+    changes?: Record<string, FieldChange>
+  }>,
+  comment?: string,
+): CreateChangeRequestDto => {
+  return {
+    comment,
+    records: wires.map(({ wire, type, changes }) => wireToChangeRecord(wire, type, changes)),
   }
 }

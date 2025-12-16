@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
-import { Wire, User, WireChangeRequest, ChangeRequestStatus } from '@prisma/client';
+import { Wire, User, WireChangeRecord, ChangeRequest, ChangeRequestStatus } from '@prisma/client';
 import { PaginatedResponseDto } from '../../common/dto/pagination.dto';
 import { GetWiresDto } from './dto/get-wires.dto';
 import { CreateWireDto } from './dto/create-wire.dto';
@@ -10,10 +10,10 @@ import { UnitSummaryDto } from './dto/unit-summary.dto';
 import { isCommand, executeCommand } from '../../common/utils/command-parser';
 
 /**
- * Extended wire type that includes pending change requests
+ * Extended wire type that includes pending change records
  */
 export type WireWithPendingUpdates = Wire & {
-  pendingChangeRequests?: (WireChangeRequest & { author: User })[];
+  pendingChangeRecords?: (WireChangeRecord & { changeRequest: ChangeRequest & { author: User } })[];
 };
 
 @Injectable()
@@ -62,32 +62,35 @@ export class WiresService {
       this.prisma.wire.count({ where }),
     ]);
 
-    // Fetch pending and approved change requests for these wires
+    // Fetch pending and approved change records for these wires
     const wireIds = wires.map((w) => w.id);
-    const changeRequests = await this.prisma.wireChangeRequest.findMany({
+    const changeRecords = await this.prisma.wireChangeRecord.findMany({
       where: {
         wireId: { in: wireIds },
-        status: { in: [ChangeRequestStatus.PENDING, ChangeRequestStatus.APPROVED] },
+        changeRequest: {
+          status: { in: [ChangeRequestStatus.PENDING, ChangeRequestStatus.APPROVED] },
+        },
       },
-      include: { author: true },
+      include: { changeRequest: { include: { author: true } } },
       orderBy: { createdAt: 'desc' },
     });
 
-    // Group change requests by wireId
-    const changeRequestsByWireId = new Map<bigint, (WireChangeRequest & { author: User })[]>();
-    for (const cr of changeRequests) {
+    // Group change records by wireId
+    type ChangeRecordWithRequest = WireChangeRecord & { changeRequest: ChangeRequest & { author: User } };
+    const changeRecordsByWireId = new Map<bigint, ChangeRecordWithRequest[]>();
+    for (const cr of changeRecords) {
       if (cr.wireId) {
-        if (!changeRequestsByWireId.has(cr.wireId)) {
-          changeRequestsByWireId.set(cr.wireId, []);
+        if (!changeRecordsByWireId.has(cr.wireId)) {
+          changeRecordsByWireId.set(cr.wireId, []);
         }
-        changeRequestsByWireId.get(cr.wireId)!.push(cr);
+        changeRecordsByWireId.get(cr.wireId)!.push(cr);
       }
     }
 
-    // Merge wires with their change requests
+    // Merge wires with their change records
     const wiresWithUpdates: WireWithPendingUpdates[] = wires.map((wire) => ({
       ...wire,
-      pendingChangeRequests: changeRequestsByWireId.get(wire.id) || [],
+      pendingChangeRecords: changeRecordsByWireId.get(wire.id) || [],
     }));
 
     return new PaginatedResponseDto(wiresWithUpdates, total, page, size);
@@ -313,32 +316,35 @@ export class WiresService {
       this.prisma.wire.count({ where }),
     ]);
 
-    // Fetch pending and approved change requests for these wires
+    // Fetch pending and approved change records for these wires
     const wireIds = wires.map((w) => w.id);
-    const changeRequests = await this.prisma.wireChangeRequest.findMany({
+    const changeRecords = await this.prisma.wireChangeRecord.findMany({
       where: {
         wireId: { in: wireIds },
-        status: { in: [ChangeRequestStatus.PENDING, ChangeRequestStatus.APPROVED] },
+        changeRequest: {
+          status: { in: [ChangeRequestStatus.PENDING, ChangeRequestStatus.APPROVED] },
+        },
       },
-      include: { author: true },
+      include: { changeRequest: { include: { author: true } } },
       orderBy: { createdAt: 'desc' },
     });
 
-    // Group change requests by wireId
-    const changeRequestsByWireId = new Map<bigint, (WireChangeRequest & { author: User })[]>();
-    for (const cr of changeRequests) {
+    // Group change records by wireId
+    type ChangeRecordWithRequest = WireChangeRecord & { changeRequest: ChangeRequest & { author: User } };
+    const changeRecordsByWireId = new Map<bigint, ChangeRecordWithRequest[]>();
+    for (const cr of changeRecords) {
       if (cr.wireId) {
-        if (!changeRequestsByWireId.has(cr.wireId)) {
-          changeRequestsByWireId.set(cr.wireId, []);
+        if (!changeRecordsByWireId.has(cr.wireId)) {
+          changeRecordsByWireId.set(cr.wireId, []);
         }
-        changeRequestsByWireId.get(cr.wireId)!.push(cr);
+        changeRecordsByWireId.get(cr.wireId)!.push(cr);
       }
     }
 
-    // Merge wires with their change requests
+    // Merge wires with their change records
     const wiresWithUpdates: WireWithPendingUpdates[] = wires.map((wire) => ({
       ...wire,
-      pendingChangeRequests: changeRequestsByWireId.get(wire.id) || [],
+      pendingChangeRecords: changeRecordsByWireId.get(wire.id) || [],
     }));
 
     return new PaginatedResponseDto(wiresWithUpdates, total, page, size);

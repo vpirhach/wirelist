@@ -111,8 +111,9 @@ import { useWireDetailsStore } from '@/stores/wireDetails'
 import { type DataItem } from '@/api/wireslist'
 import {
   createChangeRequest,
-  wireToChangeRequest,
+  wireToChangeRecord,
   type CreateChangeRequestDto,
+  type CreateChangeRecordDto,
 } from '@/api/changeRequests'
 
 const { t } = useI18n()
@@ -155,9 +156,9 @@ async function saveWire() {
 
   try {
     if (wireToEdit.value.id === null) {
-      // CREATE: Submit as a CREATE change request
-      const request: CreateChangeRequestDto = {
-        requestType: 'CREATE',
+      // CREATE: Submit as a CREATE change request with one record
+      const record: CreateChangeRecordDto = {
+        recordType: 'CREATE',
         fromDestination: wireToEdit.value.fromDestination,
         toDestination: wireToEdit.value.toDestination,
         wireCodeId: wireToEdit.value.wireCodeId || undefined,
@@ -174,8 +175,12 @@ async function saveWire() {
         network: wireToEdit.value.network || undefined,
       }
 
+      const request: CreateChangeRequestDto = {
+        records: [record],
+      }
+
       await createChangeRequest(request)
-      message.success(t('wires.createRequestSubmitted') || 'Create request submitted for review')
+      message.success(t('wires.createRequestSubmitted'))
     } else {
       // UPDATE: Build changes object and submit as UPDATE change request
       const changes: Record<string, { oldValue: any; newValue: any }> = {}
@@ -210,20 +215,23 @@ async function saveWire() {
 
       // Only submit if there are actual changes
       if (Object.keys(changes).length === 0) {
-        message.info(t('wires.noChanges') || 'No changes detected')
+        message.info(t('wires.noChanges'))
         await closeSlider()
         return
       }
 
-      const request = wireToChangeRequest(wireToEdit.value, 'UPDATE', changes)
+      const record = wireToChangeRecord(wireToEdit.value, 'UPDATE', changes)
+      const request: CreateChangeRequestDto = {
+        records: [record],
+      }
       await createChangeRequest(request)
-      message.success(t('wires.updateRequestSubmitted') || 'Update request submitted for review')
+      message.success(t('wires.updateRequestSubmitted'))
     }
 
     await closeSlider()
   } catch (error) {
     console.error('Error submitting change request:', error)
-    message.error(t('wires.submitError') || 'Failed to submit change request')
+    message.error(t('wires.submitError'))
   } finally {
     isSaving.value = false
   }
