@@ -47,6 +47,7 @@
         @selection-changed="onSelectionChanged"
         @updates-changed="onUpdatesChanged"
         @load-more="onLoadMore"
+        @search-by-value="onSearchByValue"
         :scroll-x="1000"
       />
 
@@ -120,12 +121,14 @@ const columns = computed<DataTableColumns<DataItem>>(() =>
       key: 'fromDestination',
       fixed: 'left' as const,
       minWidth: 200,
+      searchByClick: true,
     },
     {
       title: t('table.to'),
       key: 'toDestination',
       fixed: 'left' as const,
       minWidth: 200,
+      searchByClick: true,
     },
     {
       title: t('table.wireCode'),
@@ -192,6 +195,11 @@ onMounted(async () => {
 
 const onLoadMore = async () => {
   await wiresStore.loadMoreWires()
+}
+
+const onSearchByValue = async (value: string) => {
+  wiresStore.updateSearchQuery(value)
+  await wiresStore.resetAndFetch()
 }
 
 const onExtendedTableChanged = (value: boolean) => {

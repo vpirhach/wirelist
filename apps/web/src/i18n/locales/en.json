@@ -165,6 +165,7 @@
     "endOfList": "End of list • {count} records total",
     "recordsLoaded": "{loaded} of {total} records",
     "renderingRows": "Rendering {rendered} of {total} rows",
+    "clickToSearch": "Click to search by this value",
     "filters": {
       "unit": "unit",
       "panel": "panel",

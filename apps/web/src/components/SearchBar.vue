@@ -17,6 +17,13 @@
           <template #prefix>
             <MagnifyingGlassIcon class="w-4 h-4" />
           </template>
+          <template #suffix>
+            <XMarkIcon
+              v-if="wiresStore.searchQuery"
+              class="w-4 h-4 text-gray-400 hover:text-gray-600 cursor-pointer transition-colors"
+              @click="clearSearch"
+            />
+          </template>
         </NAutoComplete>
       </div>
     </form>
@@ -24,7 +31,7 @@
 </template>
 
 <script setup lang="ts">
-import { MagnifyingGlassIcon } from '@heroicons/vue/24/solid'
+import { MagnifyingGlassIcon, XMarkIcon } from '@heroicons/vue/24/solid'
 import { useI18n } from 'vue-i18n'
 import { NAutoComplete, type SelectOption, NTag } from 'naive-ui'
 import { computed, h, ref, type VNodeChild } from 'vue'
@@ -91,6 +98,11 @@ const handleInputChange = (value: string) => {
   if (!value.startsWith('/')) {
     handleSearch()
   }
+}
+
+const clearSearch = () => {
+  wiresStore.updateSearchQuery('')
+  wiresStore.resetAndFetch()
 }
 
 const handleSearch = () => {

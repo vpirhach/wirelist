@@ -165,6 +165,7 @@
     "endOfList": "Кінець списку • {count} записів всього",
     "recordsLoaded": "{loaded} з {total} записів",
     "renderingRows": "Відображено {rendered} з {total} рядків",
+    "clickToSearch": "Натисніть для пошуку за цим значенням",
     "filters": {
       "unit": "юніт",
       "panel": "панель",

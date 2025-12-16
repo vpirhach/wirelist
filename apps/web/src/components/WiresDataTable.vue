@@ -30,7 +30,7 @@
         <thead class="bg-gray-50 border-b-2 border-gray-200 sticky top-0 z-20">
           <tr>
             <th
-              class="px-4 py-3 text-center font-semibold text-gray-700 border-b-2 border-gray-200 bg-gray-50 w-12"
+              class="px-4 py-3 text-center font-semibold text-gray-700 border-b-2 border-r border-gray-200 bg-gray-50 w-12"
             >
               <NCheckbox
                 :checked="isAllSelected"
@@ -44,7 +44,7 @@
             <th
               v-for="(column, colIndex) in columns"
               :key="(column as any).key || colIndex"
-              class="px-4 py-3 text-left font-semibold text-gray-700 border-b-2 border-gray-200 bg-gray-50 whitespace-nowrap"
+              class="px-4 py-3 text-left font-semibold text-gray-700 border-b-2 border-r border-gray-200 bg-gray-50 whitespace-nowrap"
             >
               {{ (column as any).title }}
             </th>
@@ -78,16 +78,16 @@
 
             <!-- Main Row -->
             <tr
-              class="transition-colors duration-200 hover:bg-gray-200 even:bg-gray-100"
+              class="transition-colors duration-200 hover:bg-gray-300"
               :style="{ height: `${rowHeight}px` }"
             >
               <td
-                class="px-4 py-1 text-center border-b border-gray-100 cursor-pointer hover:bg-gray-300"
+                class="px-4 py-1 text-center border-b border-r border-gray-200 cursor-pointer hover:bg-gray-300"
                 @click="toggleRowSelection(row)"
               >
                 <NCheckbox :checked="isRowSelected(row)" />
               </td>
-              <td class="px-2 py-1 text-center border-b border-gray-100">
+              <td class="px-2 py-1 text-center border-b border-gray-200">
                 <ChevronDownIcon
                   v-if="hasRowUpdate(row)"
                   class="w-5 h-5 cursor-pointer transition-transform text-blue-500 hover:text-blue-700"
@@ -98,12 +98,29 @@
               <td
                 v-for="(column, colIndex) in columns"
                 :key="(column as any).key || colIndex"
-                class="px-2 py-1 text-gray-800 border-b border-gray-100 relative whitespace-nowrap"
+                class="px-2 py-1 text-gray-800 border-b border-r border-gray-200 relative whitespace-nowrap group/cell"
               >
                 <component
                   v-if="(column as any).render"
                   :is="(column as any).render(row, getActualIndex(idx))"
                 />
+                <!-- Searchable cell with search icon + editable -->
+                <div v-else-if="(column as any).searchByClick" class="flex items-center gap-1">
+                  <MagnifyingGlassIcon
+                    class="w-4 h-4 text-gray-400 hover:text-indigo-600 cursor-pointer opacity-0 group-hover/cell:opacity-100 transition-opacity shrink-0"
+                    :title="t('table.clickToSearch')"
+                    @click.stop="handleSearchByClick(getCellValue(row, (column as any).key || ''))"
+                  />
+                  <WiresDataEditable
+                    :value="getCellValue(row, (column as any).key || '')"
+                    :has-update="hasLocalUpdate(row, (column as any).key)"
+                    :update-info="getUpdateInfo(row, (column as any).key)"
+                    @value-updated="
+                      (newValue, oldValue) =>
+                        handleCellUpdate(row, getActualIndex(idx), (column as any).key, newValue, oldValue)
+                    "
+                  />
+                </div>
                 <WiresDataEditable
                   v-else
                   :value="getCellValue(row, (column as any).key || '')"
@@ -204,7 +221,7 @@ import { ref, computed, watch, toRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { NCheckbox, NSpin } from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
-import { ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/vue/24/solid'
+import { ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, MagnifyingGlassIcon } from '@heroicons/vue/24/solid'
 import type { DataItem } from '@/api/wireslist'
 import WiresDataEditable from './WiresDataEditable.vue'
 import { useVirtualScroll } from '@/composables/useVirtualScroll'
@@ -249,6 +266,7 @@ const emit = defineEmits<{
   'selection-changed': [selectedRows: DataItem[]]
   'updates-changed': [updates: Record<string | number, UpdateInfo[]>]
   'load-more': []
+  'search-by-value': [value: string]
 }>()
 
 // Refs
@@ -366,6 +384,12 @@ const getPageNumber = (rowIndex: number): number => {
 
 const getCellValue = (row: DataItem, key: string): any => {
   return row[key as keyof DataItem]
+}
+
+const handleSearchByClick = (value: any) => {
+  if (value !== null && value !== undefined && value !== '') {
+    emit('search-by-value', String(value))
+  }
 }
 
 const getRowId = (row: DataItem): string | number => {
