@@ -110,7 +110,7 @@ VITE_API_BASE_URL_V2=http://localhost:3002
 ### Backend (`apps/api/.env`)
 
 ```env
-DATABASE_URL="postgresql://user:password@localhost:5432/wirelist"
+DATABASE_URL="postgresql://postgres:mysecretpassword@localhost:5432/wirelist_db"
 JWT_SECRET="your-secret-key"
 JWT_EXPIRATION="1h"
 ```

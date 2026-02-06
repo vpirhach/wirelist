@@ -120,14 +120,14 @@ const columns = computed<DataTableColumns<DataItem>>(() =>
       title: t('table.from'),
       key: 'fromDestination',
       fixed: 'left' as const,
-      minWidth: 200,
+      minWidth: 150,
       searchByClick: true,
     },
     {
       title: t('table.to'),
       key: 'toDestination',
       fixed: 'left' as const,
-      minWidth: 200,
+      minWidth: 150,
       searchByClick: true,
     },
     {
