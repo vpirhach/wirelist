@@ -17,8 +17,11 @@ RUN npm install
 # Copy source code
 COPY . .
 
-# Build application (includes prisma generate + nest build)
-RUN npm run build
+# Generate Prisma Client and overlay onto @prisma/client so TS resolves types correctly
+RUN npx prisma generate && cp -r prisma/generated/prisma/* node_modules/@prisma/client/
+
+# Build application
+RUN npx nest build
 
 # Production stage
 FROM node:20-alpine AS production
@@ -34,8 +37,8 @@ RUN npm install --omit=dev --ignore-scripts
 # Copy built application from builder
 COPY --from=builder /app/dist ./dist
 
-# Copy generated Prisma client from builder
-COPY --from=builder /app/prisma/generated ./prisma/generated
+# Copy generated Prisma client from builder into node_modules
+COPY --from=builder /app/prisma/generated/prisma/ ./node_modules/@prisma/client/
 
 # Expose port
 EXPOSE 3002
