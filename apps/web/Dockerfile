@@ -3,6 +3,10 @@ FROM node:22-alpine as build-stage
 
 WORKDIR /app
 
+# Build arguments for API URLs (set at build time)
+ARG VITE_API_BASE_URL_V2=http://localhost:3002
+ENV VITE_API_BASE_URL_V2=$VITE_API_BASE_URL_V2
+
 # Install build dependencies
 RUN apk add --no-cache python3 make g++
 

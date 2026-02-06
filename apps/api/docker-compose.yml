@@ -1,3 +1,7 @@
+# =============================================================================
+# API-only docker-compose (for standalone development)
+# For production deployment, use the root docker-compose.yml instead.
+# =============================================================================
 services:
   wirelist-api-node:
     build:
@@ -28,7 +32,7 @@ services:
       - POSTGRES_PASSWORD=mysecretpassword
       - POSTGRES_DB=wirelist_db
     ports:
-      - '5432:5432'
+      - '5435:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
@@ -37,7 +41,7 @@ services:
 
 networks:
   wirelist-network:
-    external: true
+    driver: bridge
 
 volumes:
   postgres_data:
