@@ -25,9 +25,9 @@ NC='\033[0m'
 
 # ── Configuration ────────────────────────────────────────────────────────────
 REMOTE_HOST="wirelist@172.18.12.93"
-REMOTE_DIR="~/wirelist-monorepo"
+REMOTE_DIR="/home/wirelist/wirelist-monorepo"
 GIT_REPO="git@github.com:vpirhach/wirelist.git"
-GIT_BRANCH="main"
+GIT_BRANCH="master"
 REBUILD_FLAG=""
 
 # Parse arguments
@@ -106,13 +106,14 @@ echo ""
 echo -e "\${YELLOW}[3/5] Building Docker images...\${NC}"
 
 # Ensure Docker is running
-if ! command -v docker &> /dev/null; then
+if ! command -v docker > /dev/null 2>&1; then
     echo -e "\${RED}✗ Docker is not installed\${NC}"
     exit 1
 fi
 
-if ! docker info &> /dev/null; then
-    echo -e "\${RED}✗ Docker daemon is not running\${NC}"
+if ! docker info > /dev/null 2>&1; then
+    echo -e "\${RED}✗ Docker daemon is not running (or user not in docker group)\${NC}"
+    echo -e "\${BLUE}Hint: run 'sudo usermod -aG docker wirelist' and re-login\${NC}"
     exit 1
 fi
 
@@ -128,7 +129,7 @@ echo ""
 echo -e "\${YELLOW}[4/5] Starting services...\${NC}"
 
 # Stop existing containers (if any)
-docker compose down --remove-orphans 2>/dev/null || true
+docker compose down --remove-orphans > /dev/null 2>&1 || true
 
 # Start all services
 docker compose up -d
@@ -141,7 +142,7 @@ sleep 5
 RETRIES=12
 WAIT=5
 for i in \$(seq 1 \$RETRIES); do
-    if docker compose exec -T postgres pg_isready -U postgres -d wirelist_db &>/dev/null; then
+    if docker compose exec -T postgres pg_isready -U postgres -d wirelist_db > /dev/null 2>&1; then
         echo -e "\${GREEN}  ✓ PostgreSQL is ready\${NC}"
         break
     fi
@@ -198,7 +199,7 @@ echo ""
 
 # Prune old images
 echo -e "\${BLUE}Cleaning up old Docker images...\${NC}"
-docker image prune -f 2>/dev/null || true
+docker image prune -f > /dev/null 2>&1 || true
 echo -e "\${GREEN}✓ Cleanup done\${NC}"
 
 echo ""
