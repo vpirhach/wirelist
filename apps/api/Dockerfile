@@ -3,21 +3,21 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copy package files
+# Copy package files and config
 COPY package*.json ./
 COPY prisma ./prisma/
 COPY prisma.config.ts ./
+COPY nest-cli.json ./
+COPY webpack.config.js ./
+COPY tsconfig*.json ./
 
-# Install dependencies
+# Install all dependencies (including devDependencies for build)
 RUN npm install
 
 # Copy source code
 COPY . .
 
-# Generate Prisma Client
-RUN npm run prisma:generate
-
-# Build application
+# Build application (includes prisma generate + nest build)
 RUN npm run build
 
 # Production stage
@@ -27,17 +27,15 @@ WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
-COPY prisma ./prisma/
-COPY prisma.config.ts ./
 
 # Install production dependencies only
 RUN npm install --omit=dev
 
-# Generate Prisma Client
-RUN npm run prisma:generate
-
 # Copy built application from builder
 COPY --from=builder /app/dist ./dist
+
+# Copy generated Prisma client from builder
+COPY --from=builder /app/prisma/generated ./prisma/generated
 
 # Expose port
 EXPOSE 3002
