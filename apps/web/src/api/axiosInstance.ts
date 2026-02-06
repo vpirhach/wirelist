@@ -1,8 +1,8 @@
 import axios, { AxiosError } from 'axios'
 import type { InternalAxiosRequestConfig, AxiosResponse } from 'axios'
 
-// API Base URL (Node.js NestJS backend)
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_V2 ?? 'http://localhost:3002'
+// API Base URL (Node.js NestJS backend) — includes /api prefix
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL_V2 ?? 'http://localhost:3002') + '/api'
 
 // Create axios instance
 const axiosInstance = axios.create({
@@ -84,7 +84,7 @@ const responseErrorInterceptor = async (error: AxiosError) => {
     try {
       // Attempt to refresh the token
       const response = await axios.post(
-        `${API_BASE_URL}/api/auth/refresh`,
+        `${API_BASE_URL}/auth/refresh`,
         { refreshToken },
         {
           headers: { 'Content-Type': 'application/json' },

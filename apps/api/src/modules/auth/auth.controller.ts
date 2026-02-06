@@ -40,7 +40,7 @@ import { RefreshTokenDto } from './dto/refresh-token.dto';
  * - Comprehensive error handling
  */
 @ApiTags('Authentication')
-@Controller('api/auth')
+@Controller('auth')
 export class AuthController {
   private readonly logger = new Logger(AuthController.name);
 

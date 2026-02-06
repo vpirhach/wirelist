@@ -8,7 +8,7 @@ import type {
   User,
 } from '@/types/auth'
 
-const AUTH_BASE_URL = '/api/auth'
+const AUTH_BASE_URL = '/auth'
 
 export const authService = {
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
