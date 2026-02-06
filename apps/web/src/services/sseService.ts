@@ -37,7 +37,7 @@ export const useSSE = () => {
       eventSource.value.close()
     }
 
-    const baseUrl = import.meta.env.VITE_API_BASE_URL_V2 || 'http://localhost:3002'
+    const baseUrl = import.meta.env.VITE_API_BASE_URL_V2 ?? 'http://localhost:3002'
     eventSource.value = new EventSource(`${baseUrl}/api/progress/subscribe/${processId}`)
 
     isProcessing.value = true
