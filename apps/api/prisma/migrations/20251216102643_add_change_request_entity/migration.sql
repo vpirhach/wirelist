@@ -1,6 +1,13 @@
 -- CreateEnum
 CREATE TYPE "ChangeRecordType" AS ENUM ('CREATE', 'UPDATE', 'DELETE');
 
+-- CreateEnum (idempotent - may already exist from prior migrations)
+DO $$ BEGIN
+    CREATE TYPE "ChangeRequestStatus" AS ENUM ('PENDING', 'APPROVED', 'DECLINED', 'REJECTED');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
 -- CreateTable
 CREATE TABLE "change_requests" (
     "id" BIGSERIAL NOT NULL,
@@ -77,90 +84,46 @@ ALTER TABLE "change_requests" ADD CONSTRAINT "change_requests_reviewer_id_fkey" 
 -- AddForeignKey
 ALTER TABLE "wire_change_records" ADD CONSTRAINT "wire_change_records_change_request_id_fkey" FOREIGN KEY ("change_request_id") REFERENCES "change_requests"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
--- Migrate existing data from wire_change_requests to new structure
--- This creates a new change_request for each existing wire_change_request
-INSERT INTO "change_requests" ("id", "status", "comment", "author_id", "reviewer_id", "review_comment", "reviewed_at", "created_at", "updated_at")
-SELECT 
-    "id",
-    "status",
-    NULL,
-    "author_id",
-    "reviewer_id",
-    "review_comment",
-    "reviewed_at",
-    "created_at",
-    "updated_at"
-FROM "wire_change_requests";
+-- Migrate existing data from wire_change_requests to new structure (only if old table exists)
+DO $$ BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'wire_change_requests') THEN
+        INSERT INTO "change_requests" ("id", "status", "comment", "author_id", "reviewer_id", "review_comment", "reviewed_at", "created_at", "updated_at")
+        SELECT 
+            "id",
+            "status",
+            NULL,
+            "author_id",
+            "reviewer_id",
+            "review_comment",
+            "reviewed_at",
+            "created_at",
+            "updated_at"
+        FROM "wire_change_requests";
 
--- Migrate wire change data to wire_change_records
-INSERT INTO "wire_change_records" (
-    "id",
-    "wire_id",
-    "record_type",
-    "from_destination",
-    "to_destination",
-    "wire_code_id",
-    "color_id",
-    "io_type_id",
-    "sub",
-    "word",
-    "bits",
-    "power",
-    "origin",
-    "wire_number",
-    "hw_models_id",
-    "remarks",
-    "note_code",
-    "change_number",
-    "change_date",
-    "hw_address",
-    "coord",
-    "decommissioned",
-    "ped",
-    "network",
-    "changes",
-    "change_request_id",
-    "created_at",
-    "updated_at"
-)
-SELECT 
-    "id",
-    "wire_id",
-    "request_type"::"text"::"ChangeRecordType",
-    "from_destination",
-    "to_destination",
-    "wire_code_id",
-    "color_id",
-    "io_type_id",
-    "sub",
-    "word",
-    "bits",
-    "power",
-    "origin",
-    "wire_number",
-    "hw_models_id",
-    "remarks",
-    "note_code",
-    "change_number",
-    "change_date",
-    "hw_address",
-    "coord",
-    "decommissioned",
-    "ped",
-    "network",
-    "changes",
-    "id", -- change_request_id is same as old id (1-to-1 migration)
-    "created_at",
-    "updated_at"
-FROM "wire_change_requests";
+        INSERT INTO "wire_change_records" (
+            "id", "wire_id", "record_type", "from_destination", "to_destination",
+            "wire_code_id", "color_id", "io_type_id", "sub", "word", "bits",
+            "power", "origin", "wire_number", "hw_models_id", "remarks", "note_code",
+            "change_number", "change_date", "hw_address", "coord", "decommissioned",
+            "ped", "network", "changes", "change_request_id", "created_at", "updated_at"
+        )
+        SELECT 
+            "id", "wire_id", "request_type"::"text"::"ChangeRecordType",
+            "from_destination", "to_destination", "wire_code_id", "color_id", "io_type_id",
+            "sub", "word", "bits", "power", "origin", "wire_number", "hw_models_id",
+            "remarks", "note_code", "change_number", "change_date", "hw_address", "coord",
+            "decommissioned", "ped", "network", "changes",
+            "id", -- change_request_id maps 1-to-1 with old id
+            "created_at", "updated_at"
+        FROM "wire_change_requests";
 
--- Update sequences to continue from max id
-SELECT setval(pg_get_serial_sequence('change_requests', 'id'), COALESCE((SELECT MAX(id) FROM change_requests), 0) + 1, false);
-SELECT setval(pg_get_serial_sequence('wire_change_records', 'id'), COALESCE((SELECT MAX(id) FROM wire_change_records), 0) + 1, false);
+        PERFORM setval(pg_get_serial_sequence('change_requests', 'id'), COALESCE((SELECT MAX(id) FROM change_requests), 0) + 1, false);
+        PERFORM setval(pg_get_serial_sequence('wire_change_records', 'id'), COALESCE((SELECT MAX(id) FROM wire_change_records), 0) + 1, false);
 
--- Drop old table
-DROP TABLE "wire_change_requests";
+        DROP TABLE "wire_change_requests";
+    END IF;
+END $$;
 
--- Drop old enum type
-DROP TYPE "ChangeRequestType";
+-- Drop old enum type if it exists
+DROP TYPE IF EXISTS "ChangeRequestType";
 

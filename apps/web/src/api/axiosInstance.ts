@@ -34,6 +34,10 @@ const processQueue = (error: any, token: string | null = null) => {
 
 // Request interceptor
 const requestInterceptor = (config: InternalAxiosRequestConfig) => {
+  // FormData must not use default application/json — browser sets multipart boundary
+  if (config.data instanceof FormData && config.headers) {
+    delete config.headers['Content-Type']
+  }
   // Get access token from sessionStorage (more secure than localStorage)
   const token = sessionStorage.getItem('accessToken')
   if (token && config.headers) {

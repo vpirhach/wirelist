@@ -1,0 +1,16 @@
+services:
+  loom:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: wirelist-loom
+    ports:
+      - "3050:3050"
+    environment:
+      - PORT=3050
+    volumes:
+      - loom-sessions:/app/data/sessions
+    restart: unless-stopped
+
+volumes:
+  loom-sessions:

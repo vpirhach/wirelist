@@ -5,6 +5,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { WiresModule } from './modules/wires/wires.module';
 import { UnitPanelsModule } from './modules/unit-panels/unit-panels.module';
 import { ChangeRequestsModule } from './modules/change-requests/change-requests.module';
+import { LoomUploadModule } from './modules/loom-upload/loom-upload.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { ChangeRequestsModule } from './modules/change-requests/change-requests.
     WiresModule,
     UnitPanelsModule,
     ChangeRequestsModule,
+    LoomUploadModule,
   ],
 })
 export class AppModule {}
