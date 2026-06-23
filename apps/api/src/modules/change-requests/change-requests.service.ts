@@ -292,6 +292,25 @@ export class ChangeRequestsService {
       throw new BadRequestException(`Change request is not pending (status: ${request.status})`);
     }
 
+    // Pre-validate all referenced wires exist before mutating anything
+    const wireIds = request.records
+      .filter((r) => r.wireId !== null && (r.recordType === ChangeRecordType.UPDATE || r.recordType === ChangeRecordType.DELETE))
+      .map((r) => r.wireId!);
+
+    if (wireIds.length > 0) {
+      const foundWires = await this.prisma.wire.findMany({
+        where: { id: { in: wireIds } },
+        select: { id: true },
+      });
+      const foundIds = new Set(foundWires.map((w) => w.id.toString()));
+      const missing = wireIds.filter((wid) => !foundIds.has(wid.toString()));
+      if (missing.length > 0) {
+        throw new BadRequestException(
+          `Cannot apply change request: wire(s) no longer exist: ${missing.join(', ')}`,
+        );
+      }
+    }
+
     // Apply all change records in a transaction
     await this.prisma.$transaction(async (tx) => {
       for (const record of request.records) {

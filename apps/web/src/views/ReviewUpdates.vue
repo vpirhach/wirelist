@@ -11,17 +11,17 @@
       <!-- Filters -->
       <div class="flex items-center gap-4 mb-4">
         <NSelect
-          v-model:value="selectedUnit"
-          :options="unitOptions"
-          :placeholder="t('reviewUpdates.filterByUnit')"
+          v-model:value="selectedStatus"
+          :options="statusOptions"
+          :placeholder="t('reviewUpdates.filterByStatus')"
           clearable
           style="width: 200px"
           @update:value="handleFilterChange"
         />
         <NSelect
-          v-model:value="selectedStatus"
-          :options="statusOptions"
-          :placeholder="t('reviewUpdates.filterByStatus')"
+          v-model:value="selectedUnit"
+          :options="unitOptions"
+          :placeholder="t('reviewUpdates.filterByUnit')"
           clearable
           style="width: 200px"
           @update:value="handleFilterChange"
@@ -90,63 +90,105 @@
           </div>
 
           <!-- Records Table -->
-          <table class="w-full">
-            <thead class="bg-gray-50 border-b">
-              <tr>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  {{ t('reviewUpdates.table.type') }}
-                </th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  {{ t('reviewUpdates.table.wireId') }}
-                </th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  {{ t('reviewUpdates.table.from') }}
-                </th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  {{ t('reviewUpdates.table.to') }}
-                </th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  {{ t('reviewUpdates.table.changes') }}
-                </th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-200">
-              <tr v-for="record in request.records" :key="record.id" class="hover:bg-gray-50">
-                <td class="px-4 py-3">
-                  <span
-                    class="px-2 py-1 text-xs font-medium rounded"
-                    :class="{
-                      'bg-green-100 text-green-800': record.recordType === 'CREATE',
-                      'bg-blue-100 text-blue-800': record.recordType === 'UPDATE',
-                      'bg-red-100 text-red-800': record.recordType === 'DELETE',
-                    }"
-                  >
-                    {{ t(`reviewUpdates.requestType.${record.recordType.toLowerCase()}`) }}
-                  </span>
-                </td>
-                <td class="px-4 py-3 text-sm text-gray-500">
-                  {{ record.wireId || t('reviewUpdates.new') }}
-                </td>
-                <td class="px-4 py-3 text-sm text-gray-900">
-                  {{ record.fromDestination || '-' }}
-                </td>
-                <td class="px-4 py-3 text-sm text-gray-900">
-                  {{ record.toDestination || '-' }}
-                </td>
-                <td class="px-4 py-3 text-sm">
-                  <div v-if="record.changes" class="max-w-xs">
-                    <div v-for="(change, key) in record.changes" :key="key" class="text-xs">
-                      <span class="font-medium">{{ key }}:</span>
-                      <span class="text-red-500 line-through ml-1">{{ change.oldValue }}</span>
-                      <span class="text-gray-400 mx-1">→</span>
-                      <span class="text-green-600">{{ change.newValue }}</span>
+          <div class="relative">
+            <table class="w-full">
+              <thead class="bg-gray-50 border-b">
+                <tr>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    {{ t('reviewUpdates.table.type') }}
+                  </th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    {{ t('reviewUpdates.table.wireId') }}
+                  </th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    {{ t('reviewUpdates.table.from') }}
+                  </th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    {{ t('reviewUpdates.table.to') }}
+                  </th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    {{ t('reviewUpdates.table.changes') }}
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-200">
+                <tr
+                  v-for="record in expandedRequests.has(request.id)
+                    ? request.records
+                    : request.records.slice(0, 5)"
+                  :key="record.id"
+                  class="hover:bg-gray-50"
+                >
+                  <td class="px-4 py-3">
+                    <span
+                      class="px-2 py-1 text-xs font-medium rounded"
+                      :class="{
+                        'bg-green-100 text-green-800': record.recordType === 'CREATE',
+                        'bg-blue-100 text-blue-800': record.recordType === 'UPDATE',
+                        'bg-red-100 text-red-800': record.recordType === 'DELETE',
+                      }"
+                    >
+                      {{ t(`reviewUpdates.requestType.${record.recordType.toLowerCase()}`) }}
+                    </span>
+                  </td>
+                  <td class="px-4 py-3 text-sm text-gray-500">
+                    {{ record.wireId || t('reviewUpdates.new') }}
+                  </td>
+                  <td class="px-4 py-3 text-sm text-gray-900">
+                    {{ record.fromDestination || '-' }}
+                  </td>
+                  <td class="px-4 py-3 text-sm text-gray-900">
+                    {{ record.toDestination || '-' }}
+                  </td>
+                  <td class="px-4 py-3 text-sm">
+                    <div v-if="record.changes" class="max-w-xs">
+                      <div v-for="(change, key) in record.changes" :key="key" class="text-xs">
+                        <span class="font-medium">{{ key }}:</span>
+                        <span class="text-red-500 line-through ml-1">{{ change.oldValue }}</span>
+                        <span class="text-gray-400 mx-1">→</span>
+                        <span class="text-green-600">{{ change.newValue }}</span>
+                      </div>
                     </div>
-                  </div>
-                  <span v-else class="text-gray-400">-</span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+                    <span v-else class="text-gray-400">-</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <!-- Gradient fade when collapsed and more rows exist -->
+            <div
+              v-if="!expandedRequests.has(request.id) && request.records.length > 5"
+              class="absolute bottom-0 left-0 right-0 h-14 bg-gradient-to-t from-white to-transparent pointer-events-none"
+            />
+          </div>
+
+          <!-- Expand / Collapse button -->
+          <div
+            v-if="request.records.length > 5"
+            class="flex justify-center py-2 border-t bg-white"
+          >
+            <button
+              class="flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800 font-medium transition-colors"
+              @click="toggleExpand(request.id)"
+            >
+              <span>
+                {{
+                  expandedRequests.has(request.id)
+                    ? t('reviewUpdates.showLess')
+                    : t('reviewUpdates.showAll', { count: request.records.length })
+                }}
+              </span>
+              <svg
+                class="w-4 h-4 transition-transform duration-200"
+                :class="{ 'rotate-180': expandedRequests.has(request.id) }"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -236,7 +278,16 @@ const units = ref<string[]>([])
 
 // Filters
 const selectedUnit = ref<string | null>(null)
-const selectedStatus = ref<ChangeRequestStatus | null>(null)
+const selectedStatus = ref<ChangeRequestStatus | null>('PENDING')
+
+// Expand state per request
+const expandedRequests = ref<Set<string>>(new Set())
+const toggleExpand = (requestId: string) => {
+  const next = new Set(expandedRequests.value)
+  if (next.has(requestId)) next.delete(requestId)
+  else next.add(requestId)
+  expandedRequests.value = next
+}
 
 // Pagination
 const currentPage = ref(1)

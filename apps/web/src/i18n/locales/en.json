@@ -279,6 +279,8 @@
     "new": "New",
     "noChangeRequests": "No change requests found",
     "adjustFilters": "Try adjusting your filters",
+    "showAll": "Show all {count} changes",
+    "showLess": "Show less",
     "addComment": "Add a comment (optional)...",
     "approve": "Approve",
     "decline": "Decline",
